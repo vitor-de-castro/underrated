@@ -1,3 +1,14 @@
+// GraphQL Response Structure
+export interface SorareResponse {
+  football: {
+    players: {
+      edges: Array<{
+        node: SorarePlayer;
+      }>;
+    };
+  };
+}
+
 export interface SorarePlayer {
   slug: string;
   displayName: string;
@@ -16,6 +27,8 @@ export interface SorarePlayer {
     nodes: SorareCard[];
   };
 }
+
+// Rest of your existing interfaces...
 
 export interface SorareCard {
   slug: string;

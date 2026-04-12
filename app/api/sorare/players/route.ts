@@ -1,67 +1,58 @@
 import { NextResponse } from 'next/server';
-import { sorareClient } from '@/lib/sorare/client';
-import { GET_PLAYERS } from '@/lib/sorare/queries';
 
 export async function GET() {
-  try {
-    console.log('=== Fetching from Sorare ===');
+  const mockPlayers = [
+    {
+      slug: 'erling-haaland',
+      displayName: 'Erling Haaland',
+      position: 'Forward',
+      age: 24,
+      club: { name: 'Manchester City' },
+      cards: { nodes: [{ latestEnglishAuction: { currentPrice: '250.00' } }] },
+      valueScore: 8.5,
+      stats: { goals: 28, assists: 5, minutesPlayed: 2340, gamesPlayed: 26 }
+    },
+    {
+      slug: 'cole-palmer',
+      displayName: 'Cole Palmer',
+      position: 'Midfielder',
+      age: 22,
+      club: { name: 'Chelsea' },
+      cards: { nodes: [{ latestEnglishAuction: { currentPrice: '120.00' } }] },
+      valueScore: 9.1,
+      stats: { goals: 20, assists: 11, minutesPlayed: 2610, gamesPlayed: 29 }
+    },
+    {
+      slug: 'alexander-isak',
+      displayName: 'Alexander Isak',
+      position: 'Forward',
+      age: 24,
+      club: { name: 'Newcastle United' },
+      cards: { nodes: [{ latestEnglishAuction: { currentPrice: '95.00' } }] },
+      valueScore: 8.7,
+      stats: { goals: 19, assists: 3, minutesPlayed: 2160, gamesPlayed: 24 }
+    },
+    {
+      slug: 'bukayo-saka',
+      displayName: 'Bukayo Saka',
+      position: 'Midfielder',
+      age: 22,
+      club: { name: 'Arsenal' },
+      cards: { nodes: [{ latestEnglishAuction: { currentPrice: '180.00' } }] },
+      valueScore: 7.8,
+      stats: { goals: 12, assists: 18, minutesPlayed: 2520, gamesPlayed: 28 }
+    },
+    {
+      slug: 'martin-odegaard',
+      displayName: 'Martin Ødegaard',
+      position: 'Midfielder',
+      age: 25,
+      club: { name: 'Arsenal' },
+      cards: { nodes: [{ latestEnglishAuction: { currentPrice: '450.00' } }] },
+      valueScore: 7.2,
+      stats: { goals: 8, assists: 14, minutesPlayed: 2430, gamesPlayed: 27 }
+    }
+  ];
 
-    const data = await sorareClient.request<any>(GET_PLAYERS, {
-      first: 20,
-    });
-
-    console.log('✅ Sorare response received');
-
-    // Extract players from edges structure
-    const playerEdges = data.football.players.edges;
-    console.log(`Found ${playerEdges.length} players`);
-
-    // Transform to simpler structure
-    const players = playerEdges.map((edge: any) => {
-      const player = edge.node;
-
-      // Extract first card if exists
-      const firstCard = player.cards?.edges?.[0]?.node;
-      const cardPrice = firstCard?.latestEnglishAuction?.currentPrice || '0';
-
-      return {
-        slug: player.slug,
-        displayName: player.displayName,
-        position: player.position,
-        age: player.age,
-        avatarUrl: player.avatarUrl,
-        club: player.club,
-        cards: {
-          nodes: firstCard ? [{
-            slug: firstCard.slug,
-            rarity: firstCard.rarity,
-            serialNumber: firstCard.serialNumber,
-            latestEnglishAuction: firstCard.latestEnglishAuction,
-          }] : []
-        },
-        valueScore: 5.0, // Dummy for now
-        stats: {
-          goals: 0,
-          assists: 0,
-          minutesPlayed: 0,
-          gamesPlayed: 0,
-        }
-      };
-    });
-
-    console.log(`Returning ${players.length} players`);
-    return NextResponse.json(players);
-
-  } catch (error) {
-    console.error('=== ERROR ===');
-    console.error(error);
-
-    return NextResponse.json(
-      {
-        error: 'Failed to fetch players',
-        details: error instanceof Error ? error.message : 'Unknown error'
-      },
-      { status: 500 }
-    );
-  }
+  return NextResponse.json(mockPlayers.sort((a, b) => b.valueScore - a.valueScore));
 }

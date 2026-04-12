@@ -2,11 +2,17 @@
 
 import { useEffect, useState } from 'react';
 import { PlayerCard } from '@/components/sorare/PlayerCard';
+import { Filters } from '@/components/Filters';
 
 export default function Home() {
   const [players, setPlayers] = useState<any[]>([]);
+  const [filteredPlayers, setFilteredPlayers] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+
+  // Filters
+  const [selectedPosition, setSelectedPosition] = useState('all');
+  const [maxPrice, setMaxPrice] = useState(9999);
 
   useEffect(() => {
     async function fetchPlayers() {
@@ -19,6 +25,7 @@ export default function Home() {
 
         const data = await response.json();
         setPlayers(data);
+        setFilteredPlayers(data);
       } catch (err) {
         setError('Failed to load players. Check console for details.');
         console.error(err);
@@ -29,6 +36,22 @@ export default function Home() {
 
     fetchPlayers();
   }, []);
+
+  // Apply filters whenever they change
+  useEffect(() => {
+    let filtered = [...players];
+
+    // Filter by position
+    if (selectedPosition !== 'all') {
+      filtered = filtered.filter(p => p.position === selectedPosition);
+    }
+
+    // Filter by price
+    const playerPrice = (p: any) => parseFloat(p.cards.nodes[0]?.latestEnglishAuction?.currentPrice || '0');
+    filtered = filtered.filter(p => playerPrice(p) <= maxPrice);
+
+    setFilteredPlayers(filtered);
+  }, [selectedPosition, maxPrice, players]);
 
   if (loading) {
     return (
@@ -66,10 +89,21 @@ export default function Home() {
           </p>
         </div>
 
+        {/* Filters */}
+        <Filters
+          onPositionChange={setSelectedPosition}
+          onPriceChange={setMaxPrice}
+        />
+
+        {/* Results count */}
+        <div className="mb-4 text-gray-600">
+          Showing {filteredPlayers.length} player{filteredPlayers.length !== 1 ? 's' : ''}
+        </div>
+
         {/* Player grid */}
-        {players.length > 0 ? (
+        {filteredPlayers.length > 0 ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {players.map((player) => (
+            {filteredPlayers.map((player) => (
               <PlayerCard
                 key={player.slug}
                 name={player.displayName}
@@ -85,8 +119,9 @@ export default function Home() {
             ))}
           </div>
         ) : (
-          <div className="text-center text-gray-500">
-            <p>No players found</p>
+          <div className="text-center text-gray-500 py-12">
+            <p className="text-xl">No players match your filters</p>
+            <p className="text-sm mt-2">Try adjusting the filters above</p>
           </div>
         )}
       </div>

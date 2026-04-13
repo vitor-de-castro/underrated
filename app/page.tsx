@@ -55,10 +55,11 @@ export default function Home() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="min-h-screen bg-black flex items-center justify-center">
         <div className="text-center">
-          <div className="text-4xl mb-4">⚽</div>
-          <div className="text-xl font-semibold">Loading players...</div>
+          <div className="text-6xl mb-4 animate-bounce">⚽</div>
+          <div className="text-2xl font-bold text-white mb-2">Loading players...</div>
+          <div className="text-gray-500">Fetching undervalued gems</div>
         </div>
       </div>
     );
@@ -66,27 +67,35 @@ export default function Home() {
 
   if (error) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-center text-red-600">
-          <div className="text-xl font-semibold mb-2">Error</div>
-          <div>{error}</div>
+      <div className="min-h-screen bg-black flex items-center justify-center">
+        <div className="text-center">
+          <div className="text-6xl mb-4">⚠️</div>
+          <div className="text-xl font-semibold text-red-500 mb-2">Error</div>
+          <div className="text-gray-400">{error}</div>
         </div>
       </div>
     );
   }
 
   return (
-    <main className="min-h-screen bg-gray-50 py-12 px-4">
+    <main className="min-h-screen bg-black py-12 px-4">
       <div className="max-w-7xl mx-auto">
+
         {/* Header */}
         <div className="text-center mb-12">
-          <h1 className="text-5xl font-bold mb-3">Underrated</h1>
-          <p className="text-xl text-gray-600">
+          <h1 className="text-6xl font-black mb-4 bg-gradient-to-r from-white via-gray-300 to-gray-500 bg-clip-text text-transparent">
+            UNDERRATED
+          </h1>
+          <p className="text-xl text-gray-400">
             Discover undervalued football players on Sorare
           </p>
-          <p className="text-sm text-gray-500 mt-2">
-            Sorare Mode • Powered by real-time data
-          </p>
+          <div className="flex items-center justify-center gap-3 mt-3">
+            <span className="px-3 py-1 bg-red-500/20 border border-red-500/50 rounded-full text-red-400 text-sm font-semibold">
+              Sorare Mode
+            </span>
+            <span className="text-gray-600">•</span>
+            <span className="text-gray-500 text-sm">Real-time market data</span>
+          </div>
         </div>
 
         {/* Filters */}
@@ -96,8 +105,13 @@ export default function Home() {
         />
 
         {/* Results count */}
-        <div className="mb-4 text-gray-600">
-          Showing {filteredPlayers.length} player{filteredPlayers.length !== 1 ? 's' : ''}
+        <div className="mb-6 flex items-center justify-between">
+          <div className="text-gray-400">
+            Showing <span className="text-white font-semibold">{filteredPlayers.length}</span> player{filteredPlayers.length !== 1 ? 's' : ''}
+          </div>
+          <div className="text-xs text-gray-500">
+            Sorted by value score
+          </div>
         </div>
 
         {/* Player grid */}
@@ -115,13 +129,15 @@ export default function Home() {
                 goals={player.stats?.goals || 0}
                 assists={player.stats?.assists || 0}
                 avatarUrl={player.avatarUrl}
+                rarity={player.rarity}
               />
             ))}
           </div>
         ) : (
-          <div className="text-center text-gray-500 py-12">
-            <p className="text-xl">No players match your filters</p>
-            <p className="text-sm mt-2">Try adjusting the filters above</p>
+          <div className="text-center text-gray-500 py-20">
+            <div className="text-6xl mb-4">🔍</div>
+            <p className="text-xl text-gray-400">No players match your filters</p>
+            <p className="text-sm text-gray-600 mt-2">Try adjusting the filters above</p>
           </div>
         )}
       </div>

@@ -8,6 +8,7 @@ export async function GET() {
       position: 'Forward',
       age: 24,
       club: { name: 'Manchester City' },
+      rarity: 'unique',
       cards: { nodes: [{ latestEnglishAuction: { currentPrice: '250.00' } }] },
       valueScore: 8.5,
       stats: { goals: 28, assists: 5, minutesPlayed: 2340, gamesPlayed: 26 }
@@ -18,6 +19,7 @@ export async function GET() {
       position: 'Midfielder',
       age: 22,
       club: { name: 'Chelsea' },
+      rarity: 'super_rare',
       cards: { nodes: [{ latestEnglishAuction: { currentPrice: '120.00' } }] },
       valueScore: 9.1,
       stats: { goals: 20, assists: 11, minutesPlayed: 2610, gamesPlayed: 29 }
@@ -28,6 +30,7 @@ export async function GET() {
       position: 'Forward',
       age: 24,
       club: { name: 'Newcastle United' },
+      rarity: 'rare',
       cards: { nodes: [{ latestEnglishAuction: { currentPrice: '95.00' } }] },
       valueScore: 8.7,
       stats: { goals: 19, assists: 3, minutesPlayed: 2160, gamesPlayed: 24 }
@@ -38,6 +41,7 @@ export async function GET() {
       position: 'Midfielder',
       age: 22,
       club: { name: 'Arsenal' },
+      rarity: 'limited',
       cards: { nodes: [{ latestEnglishAuction: { currentPrice: '180.00' } }] },
       valueScore: 7.8,
       stats: { goals: 12, assists: 18, minutesPlayed: 2520, gamesPlayed: 28 }
@@ -48,6 +52,7 @@ export async function GET() {
       position: 'Midfielder',
       age: 25,
       club: { name: 'Arsenal' },
+      rarity: 'rare',
       cards: { nodes: [{ latestEnglishAuction: { currentPrice: '450.00' } }] },
       valueScore: 7.2,
       stats: { goals: 8, assists: 14, minutesPlayed: 2430, gamesPlayed: 27 }

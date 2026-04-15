@@ -116,7 +116,13 @@ export default function Home() {
 
         {/* Player grid */}
         {filteredPlayers.length > 0 ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div style={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))',
+            gap: '24px',
+            maxWidth: '1400px',
+            margin: '0 auto',
+          }}>
             {filteredPlayers.map((player) => (
               <PlayerCard
                 key={player.slug}

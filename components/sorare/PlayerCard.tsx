@@ -23,12 +23,19 @@ export function PlayerCard({
   rarity = 'limited',
 }: PlayerCardProps) {
   const getScoreColor = (score: number) => {
-    if (score >= 8) return '#ef4444';
-    if (score >= 7) return '#f97316';
-    if (score >= 6) return '#eab308';
-    return '#9ca3af';
-  };
-
+  // Bright green for excellent (9+)
+  if (score >= 9) return '#10b981';
+  // Medium green for very good (8-9)
+  if (score >= 8) return '#22c55e';
+  // Light green for good (7-8)
+  if (score >= 7) return '#84cc16';
+  // Yellow for average (6-7)
+  if (score >= 6) return '#eab308';
+  // Orange for below average (5-6)
+  if (score >= 5) return '#f97316';
+  // Red for poor (below 5)
+  return '#ef4444';
+};
   const getRarityColor = (r: string) => {
     switch (r) {
       case 'unique': return '#fbbf24';

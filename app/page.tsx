@@ -55,11 +55,19 @@ export default function Home() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-black flex items-center justify-center">
-        <div className="text-center">
-          <div className="text-6xl mb-4 animate-bounce">⚽</div>
-          <div className="text-2xl font-bold text-white mb-2">Loading players...</div>
-          <div className="text-gray-500">Fetching undervalued gems</div>
+      <div style={{
+        minHeight: '100vh',
+        background: '#000000',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+      }}>
+        <div style={{ textAlign: 'center' }}>
+          <div style={{ fontSize: '4rem', marginBottom: '16px' }}>⚽</div>
+          <div style={{ fontSize: '1.5rem', fontWeight: 'bold', color: 'white', marginBottom: '8px' }}>
+            Loading players...
+          </div>
+          <div style={{ color: '#6b7280' }}>Fetching undervalued gems</div>
         </div>
       </div>
     );
@@ -67,34 +75,63 @@ export default function Home() {
 
   if (error) {
     return (
-      <div className="min-h-screen bg-black flex items-center justify-center">
-        <div className="text-center">
-          <div className="text-6xl mb-4">⚠️</div>
-          <div className="text-xl font-semibold text-red-500 mb-2">Error</div>
-          <div className="text-gray-400">{error}</div>
+      <div style={{
+        minHeight: '100vh',
+        background: '#000000',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+      }}>
+        <div style={{ textAlign: 'center' }}>
+          <div style={{ fontSize: '4rem', marginBottom: '16px' }}>⚠️</div>
+          <div style={{ fontSize: '1.25rem', fontWeight: '600', color: '#ef4444', marginBottom: '8px' }}>
+            Error
+          </div>
+          <div style={{ color: '#9ca3af' }}>{error}</div>
         </div>
       </div>
     );
   }
 
   return (
-    <main className="min-h-screen bg-black py-12 px-4">
-      <div className="max-w-7xl mx-auto">
+    <main style={{ minHeight: '100vh', background: '#000000', padding: '48px 16px' }}>
+      <div style={{ maxWidth: '1400px', margin: '0 auto' }}>
 
         {/* Header */}
-        <div className="text-center mb-12">
-          <h1 className="text-6xl font-black mb-4 bg-gradient-to-r from-white via-gray-300 to-gray-500 bg-clip-text text-transparent">
+        <div style={{ textAlign: 'center', marginBottom: '48px' }}>
+          <h1 style={{
+            fontSize: '4rem',
+            fontWeight: '900',
+            marginBottom: '16px',
+            color: '#878787',
+            letterSpacing: '0.05em',
+          }}>
             UNDERRATED
           </h1>
-          <p className="text-xl text-gray-400">
+          <p style={{ fontSize: '1.25rem', color: '#9ca3af', marginBottom: '12px' }}>
             Discover undervalued football players on Sorare
           </p>
-          <div className="flex items-center justify-center gap-3 mt-3">
-            <span className="px-3 py-1 bg-red-500/20 border border-red-500/50 rounded-full text-red-400 text-sm font-semibold">
+          <div style={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            gap: '12px',
+          }}>
+            <span style={{
+              padding: '4px 12px',
+              background: 'rgba(239, 68, 68, 0.2)',
+              border: '1px solid rgba(239, 68, 68, 0.5)',
+              borderRadius: '9999px',
+              color: '#f87171',
+              fontSize: '0.875rem',
+              fontWeight: '600',
+            }}>
               Sorare Mode
             </span>
-            <span className="text-gray-600">•</span>
-            <span className="text-gray-500 text-sm">Real-time market data</span>
+            <span style={{ color: '#4b5563' }}>•</span>
+            <span style={{ color: '#6b7280', fontSize: '0.875rem' }}>
+              Real-time market data
+            </span>
           </div>
         </div>
 
@@ -105,11 +142,17 @@ export default function Home() {
         />
 
         {/* Results count */}
-        <div className="mb-6 flex items-center justify-between">
-          <div className="text-gray-400">
-            Showing <span className="text-white font-semibold">{filteredPlayers.length}</span> player{filteredPlayers.length !== 1 ? 's' : ''}
+        <div style={{
+          maxWidth: '1200px',
+          margin: '0 auto 24px auto',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+        }}>
+          <div style={{ color: '#9ca3af' }}>
+            Showing <span style={{ color: 'white', fontWeight: '600' }}>{filteredPlayers.length}</span> player{filteredPlayers.length !== 1 ? 's' : ''}
           </div>
-          <div className="text-xs text-gray-500">
+          <div style={{ fontSize: '0.75rem', color: '#6b7280' }}>
             Sorted by value score
           </div>
         </div>
@@ -140,10 +183,12 @@ export default function Home() {
             ))}
           </div>
         ) : (
-          <div className="text-center text-gray-500 py-20">
-            <div className="text-6xl mb-4">🔍</div>
-            <p className="text-xl text-gray-400">No players match your filters</p>
-            <p className="text-sm text-gray-600 mt-2">Try adjusting the filters above</p>
+          <div style={{ textAlign: 'center', color: '#6b7280', padding: '80px 0' }}>
+            <div style={{ fontSize: '4rem', marginBottom: '16px' }}>🔍</div>
+            <p style={{ fontSize: '1.25rem', color: '#9ca3af' }}>No players match your filters</p>
+            <p style={{ fontSize: '0.875rem', color: '#6b7280', marginTop: '8px' }}>
+              Try adjusting the filters above
+            </p>
           </div>
         )}
       </div>

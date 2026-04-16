@@ -7,21 +7,57 @@ interface FiltersProps {
 
 export function Filters({ onPositionChange, onPriceChange }: FiltersProps) {
   return (
-    <div className="bg-gray-900 border border-gray-800 rounded-xl shadow-2xl p-6 mb-8">
-      <h3 className="text-lg font-bold text-white mb-6 flex items-center gap-2">
+    <div style={{
+      maxWidth: '1200px',
+      margin: '0 auto 32px auto',
+      background: '#1a1a1a',
+      border: '1px solid #374151',
+      borderRadius: '16px',
+      padding: '24px',
+    }}>
+      <h3 style={{
+        color: 'white',
+        fontSize: '1.125rem',
+        fontWeight: 'bold',
+        marginBottom: '20px',
+        display: 'flex',
+        alignItems: 'center',
+        gap: '8px',
+      }}>
         <span>🎯</span>
         Filters
       </h3>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <div style={{
+        display: 'grid',
+        gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
+        gap: '16px',
+      }}>
         {/* Position filter */}
         <div>
-          <label className="block text-sm font-semibold text-gray-400 mb-2 uppercase tracking-wide">
+          <label style={{
+            display: 'block',
+            fontSize: '0.875rem',
+            fontWeight: '600',
+            color: '#9ca3af',
+            marginBottom: '8px',
+            textTransform: 'uppercase',
+            letterSpacing: '0.05em',
+          }}>
             Position
           </label>
           <select
             onChange={(e) => onPositionChange(e.target.value)}
-            className="w-full p-3 bg-black border border-gray-700 rounded-lg text-white focus:ring-2 focus:ring-red-500 focus:border-transparent transition-all"
+            style={{
+              width: '100%',
+              padding: '12px',
+              background: '#000000',
+              border: '1px solid #374151',
+              borderRadius: '8px',
+              color: 'white',
+              fontSize: '0.875rem',
+              cursor: 'pointer',
+            }}
           >
             <option value="all">All Positions</option>
             <option value="Forward">⚡ Forward</option>
@@ -33,12 +69,29 @@ export function Filters({ onPositionChange, onPriceChange }: FiltersProps) {
 
         {/* Price filter */}
         <div>
-          <label className="block text-sm font-semibold text-gray-400 mb-2 uppercase tracking-wide">
+          <label style={{
+            display: 'block',
+            fontSize: '0.875rem',
+            fontWeight: '600',
+            color: '#9ca3af',
+            marginBottom: '8px',
+            textTransform: 'uppercase',
+            letterSpacing: '0.05em',
+          }}>
             Max Price
           </label>
           <select
             onChange={(e) => onPriceChange(Number(e.target.value))}
-            className="w-full p-3 bg-black border border-gray-700 rounded-lg text-white focus:ring-2 focus:ring-red-500 focus:border-transparent transition-all"
+            style={{
+              width: '100%',
+              padding: '12px',
+              background: '#000000',
+              border: '1px solid #374151',
+              borderRadius: '8px',
+              color: 'white',
+              fontSize: '0.875rem',
+              cursor: 'pointer',
+            }}
           >
             <option value="9999">Any Price</option>
             <option value="100">💰 Under €100</option>
@@ -50,11 +103,28 @@ export function Filters({ onPositionChange, onPriceChange }: FiltersProps) {
 
         {/* Value score filter */}
         <div>
-          <label className="block text-sm font-semibold text-gray-400 mb-2 uppercase tracking-wide">
+          <label style={{
+            display: 'block',
+            fontSize: '0.875rem',
+            fontWeight: '600',
+            color: '#9ca3af',
+            marginBottom: '8px',
+            textTransform: 'uppercase',
+            letterSpacing: '0.05em',
+          }}>
             Min Value Score
           </label>
           <select
-            className="w-full p-3 bg-black border border-gray-700 rounded-lg text-white focus:ring-2 focus:ring-red-500 focus:border-transparent transition-all"
+            style={{
+              width: '100%',
+              padding: '12px',
+              background: '#000000',
+              border: '1px solid #374151',
+              borderRadius: '8px',
+              color: 'white',
+              fontSize: '0.875rem',
+              cursor: 'pointer',
+            }}
           >
             <option value="0">All Scores</option>
             <option value="7">⭐ 7.0+</option>

@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import { PlayerCard } from '@/components/sorare/PlayerCard';
 import { Filters } from '@/components/Filters';
+import { SearchBar } from '@/components/SearchBar';
 
 export default function Home() {
   const [players, setPlayers] = useState<any[]>([]);
@@ -13,6 +14,7 @@ export default function Home() {
   // Filters
   const [selectedPosition, setSelectedPosition] = useState('all');
   const [maxPrice, setMaxPrice] = useState(9999);
+  const [searchQuery, setSearchQuery] = useState('');
 
   useEffect(() => {
     async function fetchPlayers() {
@@ -41,6 +43,15 @@ export default function Home() {
   useEffect(() => {
     let filtered = [...players];
 
+      // Filter by search query
+    if (searchQuery.trim()) {
+      filtered = filtered.filter(p =>
+      p.displayName.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      p.club.name.toLowerCase().includes(searchQuery.toLowerCase())
+    );
+  }
+
+
     // Filter by position
     if (selectedPosition !== 'all') {
       filtered = filtered.filter(p => p.position === selectedPosition);
@@ -51,7 +62,7 @@ export default function Home() {
     filtered = filtered.filter(p => playerPrice(p) <= maxPrice);
 
     setFilteredPlayers(filtered);
-  }, [selectedPosition, maxPrice, players]);
+  }, [selectedPosition, maxPrice, searchQuery, players]);
 
   if (loading) {
     return (
@@ -141,6 +152,18 @@ export default function Home() {
           onPriceChange={setMaxPrice}
         />
 
+        {/* Search Bar */}
+        <SearchBar onSearch={setSearchQuery} />
+
+        {/* Results count */}
+        <div style={{
+          maxWidth: '1200px',
+          margin: '0 auto 24px auto',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+        }}></div>
+
         {/* Results count */}
         <div style={{
           maxWidth: '1200px',
@@ -150,12 +173,33 @@ export default function Home() {
           justifyContent: 'space-between',
         }}>
           <div style={{ color: '#9ca3af' }}>
-            Showing <span style={{ color: 'white', fontWeight: '600' }}>{filteredPlayers.length}</span> player{filteredPlayers.length !== 1 ? 's' : ''}
-          </div>
-          <div style={{ fontSize: '0.75rem', color: '#6b7280' }}>
-            Sorted by value score
-          </div>
-        </div>
+    Showing <span style={{ color: 'white', fontWeight: '600' }}>{filteredPlayers.length}</span> player{filteredPlayers.length !== 1 ? 's' : ''}
+    {(searchQuery || selectedPosition !== 'all' || maxPrice !== 9999) && (
+      <button
+        onClick={() => {
+          setSearchQuery('');
+          setSelectedPosition('all');
+          setMaxPrice(9999);
+        }}
+        style={{
+          marginLeft: '12px',
+          padding: '4px 12px',
+          background: 'rgba(239, 68, 68, 0.2)',
+          border: '1px solid rgba(239, 68, 68, 0.5)',
+          borderRadius: '6px',
+          color: '#f87171',
+          fontSize: '0.75rem',
+          cursor: 'pointer',
+        }}
+      >
+        Clear filters
+      </button>
+    )}
+  </div>
+  <div style={{ fontSize: '0.75rem', color: '#6b7280' }}>
+    Sorted by value score
+  </div>
+</div>
 
         {/* Player grid */}
         {filteredPlayers.length > 0 ? (

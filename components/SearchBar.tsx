@@ -9,7 +9,7 @@ export function SearchBar({ onSearch }: SearchBarProps) {
     <div style={{
       maxWidth: '1200px',
       margin: '0 auto 24px auto',
-      padding: '0 16px', // Match the main container padding
+      padding: '0 16px',
     }}>
       <div style={{ position: 'relative' }}>
         <input
@@ -25,6 +25,7 @@ export function SearchBar({ onSearch }: SearchBarProps) {
             color: 'white',
             fontSize: '1rem',
             outline: 'none',
+            boxSizing: 'border-box',
           }}
           onFocus={(e) => {
             e.currentTarget.style.borderColor = '#ef4444';

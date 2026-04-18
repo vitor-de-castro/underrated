@@ -9,10 +9,7 @@ export function SearchBar({ onSearch }: SearchBarProps) {
     <div style={{
       maxWidth: '1200px',
       margin: '0 auto 24px auto',
-      background: '#1a1a1a',
-      border: '1px solid #374151',
-      borderRadius: '16px',
-      padding: '24px',
+      padding: '0 16px', // Match the main container padding
     }}>
       <div style={{ position: 'relative' }}>
         <input
@@ -22,7 +19,7 @@ export function SearchBar({ onSearch }: SearchBarProps) {
           style={{
             width: '100%',
             padding: '14px 20px 14px 48px',
-            background: '#000000',
+            background: '#1a1a1a',
             border: '1px solid #374151',
             borderRadius: '12px',
             color: 'white',

@@ -3,17 +3,6 @@ import { NextResponse } from 'next/server';
 export async function GET() {
   const mockPlayers = [
     {
-      slug: 'erling-haaland',
-      displayName: 'Erling Haaland',
-      position: 'Forward',
-      age: 24,
-      club: { name: 'Manchester City' },
-      rarity: 'unique',
-      cards: { nodes: [{ latestEnglishAuction: { currentPrice: '250.00' } }] },
-      valueScore: 8.5,
-      stats: { goals: 28, assists: 5, minutesPlayed: 2340, gamesPlayed: 26 }
-    },
-    {
       slug: 'cole-palmer',
       displayName: 'Cole Palmer',
       position: 'Midfielder',
@@ -36,6 +25,17 @@ export async function GET() {
       stats: { goals: 19, assists: 3, minutesPlayed: 2160, gamesPlayed: 24 }
     },
     {
+      slug: 'erling-haaland',
+      displayName: 'Erling Haaland',
+      position: 'Forward',
+      age: 24,
+      club: { name: 'Manchester City' },
+      rarity: 'unique',
+      cards: { nodes: [{ latestEnglishAuction: { currentPrice: '250.00' } }] },
+      valueScore: 8.5,
+      stats: { goals: 28, assists: 5, minutesPlayed: 2340, gamesPlayed: 26 }
+    },
+    {
       slug: 'bukayo-saka',
       displayName: 'Bukayo Saka',
       position: 'Midfielder',
@@ -56,7 +56,7 @@ export async function GET() {
       cards: { nodes: [{ latestEnglishAuction: { currentPrice: '450.00' } }] },
       valueScore: 7.2,
       stats: { goals: 8, assists: 14, minutesPlayed: 2430, gamesPlayed: 27 }
-    }
+    },
   ];
 
   return NextResponse.json(mockPlayers.sort((a, b) => b.valueScore - a.valueScore));

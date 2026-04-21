@@ -20,22 +20,18 @@ export function PlayerCard({
   valueScore,
   goals,
   assists,
+  avatarUrl,
   rarity = 'limited',
 }: PlayerCardProps) {
   const getScoreColor = (score: number) => {
-  // Bright green for excellent (9+)
-  if (score >= 9) return '#10b981';
-  // Medium green for very good (8-9)
-  if (score >= 8) return '#22c55e';
-  // Light green for good (7-8)
-  if (score >= 7) return '#84cc16';
-  // Yellow for average (6-7)
-  if (score >= 6) return '#eab308';
-  // Orange for below average (5-6)
-  if (score >= 5) return '#f97316';
-  // Red for poor (below 5)
-  return '#ef4444';
-};
+    if (score >= 9) return '#10b981';
+    if (score >= 8) return '#22c55e';
+    if (score >= 7) return '#84cc16';
+    if (score >= 6) return '#eab308';
+    if (score >= 5) return '#f97316';
+    return '#ef4444';
+  };
+
   const getRarityColor = (r: string) => {
     switch (r) {
       case 'unique': return '#fbbf24';
@@ -89,7 +85,7 @@ export function PlayerCard({
           )}
         </div>
 
-        {/* Player image placeholder */}
+        {/* Player image */}
         <div style={{
           width: '100%',
           height: '192px',
@@ -100,8 +96,21 @@ export function PlayerCard({
           justifyContent: 'center',
           marginBottom: '16px',
           position: 'relative',
+          overflow: 'hidden',
         }}>
-          <div style={{ fontSize: '64px', opacity: 0.3 }}>⚽</div>
+          {avatarUrl ? (
+            <img
+              src={avatarUrl}
+              alt={name}
+              style={{
+                width: '100%',
+                height: '100%',
+                objectFit: 'cover',
+              }}
+            />
+          ) : (
+            <div style={{ fontSize: '64px', opacity: 0.3 }}>⚽</div>
+          )}
           <div style={{
             position: 'absolute',
             bottom: '8px',

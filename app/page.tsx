@@ -43,14 +43,13 @@ export default function Home() {
   useEffect(() => {
     let filtered = [...players];
 
-      // Filter by search query
+    // Filter by search query
     if (searchQuery.trim()) {
       filtered = filtered.filter(p =>
-      p.displayName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      p.club.name.toLowerCase().includes(searchQuery.toLowerCase())
-    );
-  }
-
+        p.displayName.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        p.club.name.toLowerCase().includes(searchQuery.toLowerCase())
+      );
+    }
 
     // Filter by position
     if (selectedPosition !== 'all') {
@@ -162,44 +161,35 @@ export default function Home() {
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'space-between',
-        }}></div>
-
-        {/* Results count */}
-        <div style={{
-          maxWidth: '1200px',
-          margin: '0 auto 24px auto',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
         }}>
           <div style={{ color: '#9ca3af' }}>
-    Showing <span style={{ color: 'white', fontWeight: '600' }}>{filteredPlayers.length}</span> player{filteredPlayers.length !== 1 ? 's' : ''}
-    {(searchQuery || selectedPosition !== 'all' || maxPrice !== 9999) && (
-      <button
-        onClick={() => {
-          setSearchQuery('');
-          setSelectedPosition('all');
-          setMaxPrice(9999);
-        }}
-        style={{
-          marginLeft: '12px',
-          padding: '4px 12px',
-          background: 'rgba(239, 68, 68, 0.2)',
-          border: '1px solid rgba(239, 68, 68, 0.5)',
-          borderRadius: '6px',
-          color: '#f87171',
-          fontSize: '0.75rem',
-          cursor: 'pointer',
-        }}
-      >
-        Clear filters
-      </button>
-    )}
-  </div>
-  <div style={{ fontSize: '0.75rem', color: '#6b7280' }}>
-    Sorted by value score
-  </div>
-</div>
+            Showing <span style={{ color: 'white', fontWeight: '600' }}>{filteredPlayers.length}</span> player{filteredPlayers.length !== 1 ? 's' : ''}
+            {(searchQuery || selectedPosition !== 'all' || maxPrice !== 9999) && (
+              <button
+                onClick={() => {
+                  setSearchQuery('');
+                  setSelectedPosition('all');
+                  setMaxPrice(9999);
+                }}
+                style={{
+                  marginLeft: '12px',
+                  padding: '4px 12px',
+                  background: 'rgba(239, 68, 68, 0.2)',
+                  border: '1px solid rgba(239, 68, 68, 0.5)',
+                  borderRadius: '6px',
+                  color: '#f87171',
+                  fontSize: '0.75rem',
+                  cursor: 'pointer',
+                }}
+              >
+                Clear filters
+              </button>
+            )}
+          </div>
+          <div style={{ fontSize: '0.75rem', color: '#6b7280' }}>
+            Sorted by value score
+          </div>
+        </div>
 
         {/* Player grid */}
         {filteredPlayers.length > 0 ? (

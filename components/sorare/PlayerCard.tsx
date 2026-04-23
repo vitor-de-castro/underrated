@@ -89,7 +89,7 @@ export function PlayerCard({
         <div style={{
           width: '100%',
           height: '192px',
-          background: 'linear-gradient(to bottom, #374151, #1f2937)',
+          background: 'transparent',
           borderRadius: '12px',
           display: 'flex',
           alignItems: 'center',
@@ -103,10 +103,10 @@ export function PlayerCard({
               src={avatarUrl}
               alt={name}
               style={{
-                width: '100%',
+                width: '85%',
                 height: '100%',
-                objectFit: 'cover',
-                objectPosition: 'top',
+                objectFit: 'contain',
+                objectPosition: 'center',
               }}
             />
           ) : (
@@ -210,7 +210,7 @@ export function PlayerCard({
         }}>
           <div style={{ color: '#9ca3af', fontSize: '11px', marginBottom: '4px' }}>Floor Price</div>
           <div style={{ color: '#10b981', fontSize: '28px', fontWeight: '900' }}>
-            €{price.toFixed(2)}
+            Ξ{price.toFixed(4)}
           </div>
         </div>
 

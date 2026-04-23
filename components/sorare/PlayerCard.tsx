@@ -88,7 +88,7 @@ export function PlayerCard({
         {/* Player image */}
         <div style={{
           width: '100%',
-          height: '192px',
+          height: '420px',
           background: 'transparent',
           borderRadius: '12px',
           display: 'flex',
@@ -103,7 +103,7 @@ export function PlayerCard({
               src={avatarUrl}
               alt={name}
               style={{
-                width: '85%',
+                width: '95%',
                 height: '100%',
                 objectFit: 'contain',
                 objectPosition: 'center',

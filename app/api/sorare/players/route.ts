@@ -1,68 +1,88 @@
 import { NextResponse } from 'next/server';
 
-export async function GET() {
-  const mockPlayers = [
-    {
-      slug: 'cole-palmer',
-      displayName: 'Cole Palmer',
-      position: 'Midfielder',
-      age: 22,
-      avatarUrl: 'https://media.api-sports.io/football/players/184935.png',
-      club: { name: 'Chelsea' },
-      rarity: 'super_rare',
-      cards: { nodes: [{ latestEnglishAuction: { currentPrice: '120.00' } }] },
-      valueScore: 9.1,
-      stats: { goals: 20, assists: 11, minutesPlayed: 2610, gamesPlayed: 29 }
-    },
-    {
-      slug: 'alexander-isak',
-      displayName: 'Alexander Isak',
-      position: 'Forward',
-      age: 24,
-      avatarUrl: 'https://media.api-sports.io/football/players/1456.png',
-      club: { name: 'Newcastle United' },
-      rarity: 'rare',
-      cards: { nodes: [{ latestEnglishAuction: { currentPrice: '95.00' } }] },
-      valueScore: 8.7,
-      stats: { goals: 19, assists: 3, minutesPlayed: 2160, gamesPlayed: 24 }
-    },
-    {
-      slug: 'erling-haaland',
-      displayName: 'Erling Haaland',
-      position: 'Forward',
-      age: 24,
-      avatarUrl: 'https://media.api-sports.io/football/players/1100.png',
-      club: { name: 'Manchester City' },
-      rarity: 'unique',
-      cards: { nodes: [{ latestEnglishAuction: { currentPrice: '250.00' } }] },
-      valueScore: 8.5,
-      stats: { goals: 28, assists: 5, minutesPlayed: 2340, gamesPlayed: 26 }
-    },
-    {
-      slug: 'bukayo-saka',
-      displayName: 'Bukayo Saka',
-      position: 'Midfielder',
-      age: 22,
-      avatarUrl: 'https://media.api-sports.io/football/players/18835.png',
-      club: { name: 'Arsenal' },
-      rarity: 'limited',
-      cards: { nodes: [{ latestEnglishAuction: { currentPrice: '180.00' } }] },
-      valueScore: 7.8,
-      stats: { goals: 12, assists: 18, minutesPlayed: 2520, gamesPlayed: 28 }
-    },
-    {
-      slug: 'martin-odegaard',
-      displayName: 'Martin Ødegaard',
-      position: 'Midfielder',
-      age: 25,
-      avatarUrl: 'https://media.api-sports.io/football/players/642.png',
-      club: { name: 'Arsenal' },
-      rarity: 'rare',
-      cards: { nodes: [{ latestEnglishAuction: { currentPrice: '450.00' } }] },
-      valueScore: 7.2,
-      stats: { goals: 8, assists: 14, minutesPlayed: 2430, gamesPlayed: 27 }
-    },
-  ];
+const SORARE_GRAPHQL_URL = 'https://api.sorare.com/federation/graphql';
 
-  return NextResponse.json(mockPlayers.sort((a, b) => b.valueScore - a.valueScore));
+const query = `
+  query GetLiveAuctions {
+    tokens {
+      liveAuctions(last: 7, sport: FOOTBALL) {
+        nodes {
+          id
+          currentPrice
+          anyCards {
+            slug
+            pictureUrl
+            rarityTyped
+            ... on Card {
+              player {
+                displayName
+                age
+                position
+                activeClub {
+                  name
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+`;
+
+export async function GET() {
+  try {
+    const response = await fetch(SORARE_GRAPHQL_URL, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ query }),
+    });
+
+    const data = await response.json();
+    console.log('Sorare response:', JSON.stringify(data, null, 2));
+
+    const auctions = data?.data?.tokens?.liveAuctions?.nodes ?? [];
+
+    const players = auctions
+      .filter((auction: any) => {
+        const card = auction.anyCards?.[0];
+        // Only include cards that have player data (football cards)
+        return card?.player?.displayName;
+      })
+      .map((auction: any) => {
+        const card = auction.anyCards[0];
+        const player = card.player;
+        // Price is in wei (10^18), convert to ETH
+        const priceInEth = parseFloat(auction.currentPrice) / 1e18;
+
+        return {
+          slug: card.slug,
+          displayName: player.displayName,
+          position: player.position,
+          age: player.age,
+          avatarUrl: card.pictureUrl,
+          club: { name: player.activeClub?.name || 'Unknown Club' },
+          rarity: card.rarityTyped,
+          price: priceInEth,
+          valueScore: calculateValueScore(priceInEth),
+          stats: { goals: 0, assists: 0 }
+        };
+      });
+
+    return NextResponse.json(players.sort((a: any, b: any) => b.valueScore - a.valueScore));
+
+  } catch (error) {
+    console.error('Sorare API error:', error);
+    return NextResponse.json({ error: 'Failed to fetch' }, { status: 500 });
+  }
+}
+
+function calculateValueScore(priceInEth: number): number {
+  // Lower price = potentially more underrated
+  // This is a placeholder — you'll want to factor in real stats later
+  if (priceInEth === 0) return 0;
+  const score = Math.max(0, 10 - priceInEth * 2);
+  return Math.min(parseFloat(score.toFixed(1)), 10);
 }

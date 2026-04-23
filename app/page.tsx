@@ -13,7 +13,7 @@ export default function Home() {
 
   // Filters
   const [selectedPosition, setSelectedPosition] = useState('all');
-  const [maxPrice, setMaxPrice] = useState(9999);
+  const [maxPrice, setMaxPrice] = useState(9999999999999999);
   const [searchQuery, setSearchQuery] = useState('');
 
   useEffect(() => {
@@ -46,8 +46,8 @@ export default function Home() {
     // Filter by search query
     if (searchQuery.trim()) {
       filtered = filtered.filter(p =>
-        p.displayName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        p.club.name.toLowerCase().includes(searchQuery.toLowerCase())
+        p.displayName?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        p.club?.name?.toLowerCase().includes(searchQuery.toLowerCase())
       );
     }
 
@@ -56,9 +56,8 @@ export default function Home() {
       filtered = filtered.filter(p => p.position === selectedPosition);
     }
 
-    // Filter by price
-    const playerPrice = (p: any) => parseFloat(p.cards.nodes[0]?.latestEnglishAuction?.currentPrice || '0');
-    filtered = filtered.filter(p => playerPrice(p) <= maxPrice);
+    // Filter by price — now using p.price directly
+    filtered = filtered.filter(p => p.price <= maxPrice);
 
     setFilteredPlayers(filtered);
   }, [selectedPosition, maxPrice, searchQuery, players]);
@@ -164,12 +163,12 @@ export default function Home() {
         }}>
           <div style={{ color: '#9ca3af' }}>
             Showing <span style={{ color: 'white', fontWeight: '600' }}>{filteredPlayers.length}</span> player{filteredPlayers.length !== 1 ? 's' : ''}
-            {(searchQuery || selectedPosition !== 'all' || maxPrice !== 9999) && (
+            {(searchQuery || selectedPosition !== 'all') && (
               <button
                 onClick={() => {
                   setSearchQuery('');
                   setSelectedPosition('all');
-                  setMaxPrice(9999);
+                  setMaxPrice(9999999999999999);
                 }}
                 style={{
                   marginLeft: '12px',
@@ -204,10 +203,10 @@ export default function Home() {
               <PlayerCard
                 key={player.slug}
                 name={player.displayName}
-                club={player.club.name}
-                position={player.position}
-                age={player.age}
-                price={parseFloat(player.cards.nodes[0]?.latestEnglishAuction?.currentPrice || '0')}
+                club={player.club?.name || 'Unknown'}
+                position={player.position || 'Unknown'}
+                age={player.age || 0}
+                price={player.price}
                 valueScore={player.valueScore}
                 goals={player.stats?.goals || 0}
                 assists={player.stats?.assists || 0}

@@ -6,13 +6,12 @@ export const metadata: Metadata = {
   description: "Discover undervalued football players with AI-powered analysis",
 };
 
-export default function RootLayout({
-  children,
-}: Readonly<{
-  children: React.ReactNode;
-}>) {
+export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return (
     <html lang="en">
+      <head>
+        <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@700;900&display=swap" rel="stylesheet" />
+      </head>
       <body>{children}</body>
     </html>
   );

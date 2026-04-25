@@ -110,7 +110,7 @@ export default function Home() {
         <div style={{ textAlign: 'center', marginBottom: '48px' }}>
           <h1 style={{
             fontSize: '4rem',
-            fontFamily: "'Orbitron', sans-serif",
+            fontFamily: "'Russo One', sans-serif",
             fontWeight: '900',
             marginBottom: '16px',
             color: '#878787',

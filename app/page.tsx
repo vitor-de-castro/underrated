@@ -203,6 +203,7 @@ export default function Home() {
             {filteredPlayers.map((player) => (
               <PlayerCard
                 key={player.slug}
+                slug={player.slug}
                 name={player.displayName}
                 club={player.club?.name || 'Unknown'}
                 position={player.position || 'Unknown'}

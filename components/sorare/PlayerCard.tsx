@@ -106,19 +106,7 @@ export function PlayerCard({
           ) : (
             <div style={{ fontSize: '64px', opacity: 0.3 }}>⚽</div>
           )}
-          <div style={{
-            position: 'absolute',
-            bottom: '8px',
-            left: '8px',
-            background: 'rgba(0,0,0,0.8)',
-            color: 'white',
-            padding: '4px 12px',
-            borderRadius: '12px',
-            fontSize: '12px',
-            fontWeight: 'bold',
-          }}>
-            {position}
-          </div>
+          
         </div>
 
         <h3 style={{

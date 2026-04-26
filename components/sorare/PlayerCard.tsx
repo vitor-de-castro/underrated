@@ -152,17 +152,6 @@ export function PlayerCard({
           </div>
         </div>
 
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginBottom: '16px' }}>
-          <div style={{ background: 'rgba(0,0,0,0.4)', borderRadius: '12px', padding: '12px', border: '1px solid #374151' }}>
-            <div style={{ color: '#9ca3af', fontSize: '11px', marginBottom: '4px' }}>Goals</div>
-            <div style={{ color: '#10b981', fontSize: '24px', fontWeight: 'bold' }}>Goals: {goals}</div>
-          </div>
-          <div style={{ background: 'rgba(0,0,0,0.4)', borderRadius: '12px', padding: '12px', border: '1px solid #374151' }}>
-            <div style={{ color: '#9ca3af', fontSize: '11px', marginBottom: '4px' }}>Assists</div>
-            <div style={{ color: '#3b82f6', fontSize: '24px', fontWeight: 'bold' }}>Assists: {assists}</div>
-          </div>
-        </div>
-
         <div style={{
           background: 'rgba(16, 185, 129, 0.1)',
           borderRadius: '12px',

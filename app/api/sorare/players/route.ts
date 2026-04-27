@@ -3,10 +3,11 @@ import fs from 'fs';
 import path from 'path';
 
 const SORARE_GRAPHQL_URL = 'https://api.sorare.com/federation/graphql';
+const SORARE_JWT_TOKEN = process.env.SORARE_JWT_TOKEN;
+const SORARE_JWT_AUD = process.env.SORARE_JWT_AUD || 'underrated';
 const CACHE_FILE = path.join(process.cwd(), '.cache', 'players.json');
-const CACHE_DURATION = 60 * 60 * 1000; // 1 hour
+const CACHE_DURATION = 60 * 60 * 1000;
 
-// In-memory cache to prevent multiple simultaneous fetches
 let memoryCache: { timestamp: number; data: any } | null = null;
 let isFetching = false;
 
@@ -25,7 +26,7 @@ const makeQuery = (last: number, before?: string) => `
               player {
                 displayName
                 age
-                position
+                anyPositions
                 activeClub {
                   name
                 }
@@ -45,7 +46,11 @@ const makeQuery = (last: number, before?: string) => `
 async function fetchAuctions(last: number, before?: string) {
   const response = await fetch(SORARE_GRAPHQL_URL, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${SORARE_JWT_TOKEN}`,
+      'JWT-AUD': SORARE_JWT_AUD,
+    },
     body: JSON.stringify({ query: makeQuery(last, before) }),
   });
   const data = await response.json();
@@ -54,8 +59,6 @@ async function fetchAuctions(last: number, before?: string) {
 
 function calculateValueScore(priceInEth: number, rarity: string, age: number): number {
   if (priceInEth === 0) return 0;
-
-  // Base score by rarity
   const rarityBase: Record<string, number> = {
     unique: 9.5,
     super_rare: 8.5,
@@ -63,25 +66,17 @@ function calculateValueScore(priceInEth: number, rarity: string, age: number): n
     limited: 6.5,
   };
   const base = rarityBase[rarity] ?? 6.0;
-
-  // Price adjustment — cheaper = better value
   const priceScore = Math.max(0, 1 - priceInEth * 3);
-
-  // Age bonus — younger players have more upside
   const ageBonus = age < 23 ? 0.5 : age < 26 ? 0.2 : 0;
-
   const score = base + priceScore + ageBonus;
   return Math.min(parseFloat(score.toFixed(1)), 10);
 }
 
 function readCache() {
-  // Check memory cache first
   if (memoryCache && Date.now() - memoryCache.timestamp < CACHE_DURATION) {
     console.log('Returning memory cache');
     return memoryCache.data;
   }
-
-  // Then check file cache
   try {
     if (!fs.existsSync(CACHE_FILE)) return null;
     const raw = fs.readFileSync(CACHE_FILE, 'utf-8');
@@ -108,10 +103,10 @@ function writeCache(data: any) {
 }
 
 async function fetchFreshData() {
-  const batch1 = await fetchAuctions(4);
+  const batch1 = await fetchAuctions(10);
   const nodes1 = batch1?.nodes ?? [];
   const cursor = batch1?.pageInfo?.startCursor;
-  const batch2 = cursor ? await fetchAuctions(4, cursor) : { nodes: [] };
+  const batch2 = cursor ? await fetchAuctions(10, cursor) : { nodes: [] };
   const nodes2 = (batch2 as any)?.nodes ?? [];
 
   const validAuctions = [...nodes1, ...nodes2].filter(
@@ -126,7 +121,7 @@ async function fetchFreshData() {
     return {
       slug: card.slug,
       displayName: player.displayName,
-      position: player.position,
+      position: player.anyPositions?.[0] ?? 'Unknown',
       age: player.age,
       avatarUrl: card.pictureUrl,
       club: { name: player.activeClub?.name || 'Unknown Club' },
@@ -145,7 +140,6 @@ export async function GET() {
     const cached = readCache();
     if (cached) return NextResponse.json(cached);
 
-    // If already fetching, wait and return cache when ready
     if (isFetching) {
       console.log('Already fetching, waiting...');
       await new Promise(resolve => setTimeout(resolve, 3000));

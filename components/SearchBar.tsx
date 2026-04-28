@@ -36,7 +36,7 @@ export function SearchBar({ onSearch }: SearchBarProps) {
         <div style={{ position: 'relative', flex: 1 }}>
           <input
             type="text"
-            placeholder="Search a player by name (e.g. erling haaland)..."
+            placeholder="Enter Sorare player slug (e.g. erling-haland, kylian-mbappe)..."
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
@@ -89,7 +89,10 @@ export function SearchBar({ onSearch }: SearchBarProps) {
         </button>
       </div>
 
-      {/* Search Results */}
+      <p style={{ color: '#6b7280', fontSize: '0.75rem', marginTop: '8px', textAlign: 'center' }}>
+        Use the player slug from sorare.com/players/[slug] — e.g. erling-haland, kylian-mbappe
+      </p>
+
       {loading && (
         <div style={{ textAlign: 'center', color: '#9ca3af', marginTop: '24px' }}>
           Searching...
@@ -98,7 +101,7 @@ export function SearchBar({ onSearch }: SearchBarProps) {
 
       {!loading && searched && results.length === 0 && (
         <div style={{ textAlign: 'center', color: '#9ca3af', marginTop: '24px' }}>
-          No cards found. Try the exact player name with hyphens (e.g. "erling-haaland")
+          No cards found. Make sure you are using the exact Sorare slug from sorare.com/players/[slug]
         </div>
       )}
 

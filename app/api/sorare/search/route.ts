@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 
-const SORARE_GRAPHQL_URL = 'https://api.sorare.com/federation/graphql';
+const FEDERATION_URL = 'https://api.sorare.com/federation/graphql';
 const SORARE_JWT_TOKEN = process.env.SORARE_JWT_TOKEN;
 const SORARE_JWT_AUD = process.env.SORARE_JWT_AUD || 'underrated';
 
@@ -12,10 +12,11 @@ export async function GET(request: Request) {
     return NextResponse.json([]);
   }
 
+  // Search live auctions AND recent sales for this player
   const query = `
     query SearchPlayer {
       tokens {
-        liveAuctions(last: 50, sport: FOOTBALL) {
+        liveAuctions(last: 7, sport: FOOTBALL) {
           nodes {
             currentPrice
             anyCards {
@@ -27,6 +28,7 @@ export async function GET(request: Request) {
                   displayName
                   age
                   anyPositions
+                  slug
                   activeClub {
                     name
                   }
@@ -40,7 +42,7 @@ export async function GET(request: Request) {
   `;
 
   try {
-    const response = await fetch(SORARE_GRAPHQL_URL, {
+    const response = await fetch(FEDERATION_URL, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -51,15 +53,21 @@ export async function GET(request: Request) {
     });
 
     const data = await response.json();
-    console.log('Search errors:', data?.errors);
+
+    if (data?.errors) {
+      console.log('Errors:', data.errors);
+      return NextResponse.json([]);
+    }
 
     const auctions = data?.data?.tokens?.liveAuctions?.nodes ?? [];
+    const searchTerm = name.toLowerCase();
 
     const results = auctions
       .filter((auction: any) => {
         const card = auction.anyCards?.[0];
         const playerName = card?.player?.displayName?.toLowerCase() ?? '';
-        return playerName.includes(name.toLowerCase());
+        const playerSlug = card?.player?.slug?.toLowerCase() ?? '';
+        return playerName.includes(searchTerm) || playerSlug.includes(searchTerm);
       })
       .map((auction: any) => {
         const card = auction.anyCards[0];
@@ -67,14 +75,14 @@ export async function GET(request: Request) {
         const priceInEth = parseFloat(auction.currentPrice ?? '0') / 1e18;
         return {
           slug: card.slug,
-          displayName: player.displayName,
-          position: player.anyPositions?.[0] ?? 'Unknown',
-          age: player.age,
+          displayName: player?.displayName ?? 'Unknown',
+          position: player?.anyPositions?.[0] ?? 'Unknown',
+          age: player?.age ?? 0,
           avatarUrl: card.pictureUrl,
-          club: { name: player.activeClub?.name || 'Unknown' },
+          club: { name: player?.activeClub?.name || 'Unknown' },
           rarity: card.rarityTyped,
           price: priceInEth,
-          valueScore: calculateValueScore(priceInEth, card.rarityTyped, player.age),
+          valueScore: calculateValueScore(priceInEth, card.rarityTyped, player?.age ?? 0),
           stats: { goals: 0, assists: 0 },
         };
       });

@@ -3,7 +3,6 @@
 import { useEffect, useState } from 'react';
 import { PlayerCard } from '@/components/sorare/PlayerCard';
 import { Filters } from '@/components/Filters';
-import { SearchBar } from '@/components/SearchBar';
 
 export default function Home() {
   const [players, setPlayers] = useState<any[]>([]);
@@ -11,20 +10,14 @@ export default function Home() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
-  // Filters
   const [selectedPosition, setSelectedPosition] = useState('all');
   const [maxPrice, setMaxPrice] = useState(9999999999999999);
-  const [searchQuery, setSearchQuery] = useState('');
 
   useEffect(() => {
     async function fetchPlayers() {
       try {
         const response = await fetch('/api/sorare/players');
-
-        if (!response.ok) {
-          throw new Error('Failed to fetch');
-        }
-
+        if (!response.ok) throw new Error('Failed to fetch');
         const data = await response.json();
         setPlayers(data);
         setFilteredPlayers(data);
@@ -35,32 +28,20 @@ export default function Home() {
         setLoading(false);
       }
     }
-
     fetchPlayers();
   }, []);
 
-  // Apply filters whenever they change
   useEffect(() => {
     let filtered = [...players];
 
-    // Filter by search query
-    if (searchQuery.trim()) {
-      filtered = filtered.filter(p =>
-        p.displayName?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        p.club?.name?.toLowerCase().includes(searchQuery.toLowerCase())
-      );
-    }
-
-    // Filter by position
     if (selectedPosition !== 'all') {
       filtered = filtered.filter(p => p.position === selectedPosition);
     }
 
-    // Filter by price — now using p.price directly
     filtered = filtered.filter(p => p.price <= maxPrice);
 
     setFilteredPlayers(filtered);
-  }, [selectedPosition, maxPrice, searchQuery, players]);
+  }, [selectedPosition, maxPrice, players]);
 
   if (loading) {
     return (
@@ -106,7 +87,6 @@ export default function Home() {
     <main style={{ minHeight: '100vh', background: '#000000', padding: '48px 16px' }}>
       <div style={{ maxWidth: '1400px', margin: '0 auto' }}>
 
-        {/* Header */}
         <div style={{ textAlign: 'center', marginBottom: '48px' }}>
           <h1 style={{
             fontSize: '4rem',
@@ -145,16 +125,11 @@ export default function Home() {
           </div>
         </div>
 
-        {/* Filters */}
         <Filters
           onPositionChange={setSelectedPosition}
           onPriceChange={setMaxPrice}
         />
 
-        {/* Search Bar */}
-        <SearchBar onSearch={setSearchQuery} />
-
-        {/* Results count */}
         <div style={{
           maxWidth: '1200px',
           margin: '0 auto 24px auto',
@@ -164,10 +139,9 @@ export default function Home() {
         }}>
           <div style={{ color: '#9ca3af' }}>
             Showing <span style={{ color: 'white', fontWeight: '600' }}>{filteredPlayers.length}</span> player{filteredPlayers.length !== 1 ? 's' : ''}
-            {(searchQuery || selectedPosition !== 'all') && (
+            {selectedPosition !== 'all' && (
               <button
                 onClick={() => {
-                  setSearchQuery('');
                   setSelectedPosition('all');
                   setMaxPrice(9999999999999999);
                 }}
@@ -191,7 +165,6 @@ export default function Home() {
           </div>
         </div>
 
-        {/* Player grid */}
         {filteredPlayers.length > 0 ? (
           <div style={{
             display: 'grid',

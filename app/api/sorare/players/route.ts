@@ -103,10 +103,10 @@ function writeCache(data: any) {
 }
 
 async function fetchFreshData() {
-  const batch1 = await fetchAuctions(10);
+  const batch1 = await fetchAuctions(15);
   const nodes1 = batch1?.nodes ?? [];
   const cursor = batch1?.pageInfo?.startCursor;
-  const batch2 = cursor ? await fetchAuctions(10, cursor) : { nodes: [] };
+  const batch2 = cursor ? await fetchAuctions(15, cursor) : { nodes: [] };
   const nodes2 = (batch2 as any)?.nodes ?? [];
 
   const validAuctions = [...nodes1, ...nodes2].filter(

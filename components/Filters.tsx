@@ -3,9 +3,11 @@
 interface FiltersProps {
   onPositionChange: (position: string) => void;
   onPriceChange: (maxPrice: number) => void;
+  onValueScoreChange: (minScore: number) => void;
+  onRarityChange: (rarity: string) => void;
 }
 
-export function Filters({ onPositionChange, onPriceChange }: FiltersProps) {
+export function Filters({ onPositionChange, onPriceChange, onValueScoreChange, onRarityChange }: FiltersProps) {
   return (
     <div style={{
       maxWidth: '1200px',
@@ -36,6 +38,7 @@ export function Filters({ onPositionChange, onPriceChange }: FiltersProps) {
           gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
           gap: '16px',
         }}>
+
           {/* Position filter */}
           <div>
             <label style={{
@@ -63,14 +66,14 @@ export function Filters({ onPositionChange, onPriceChange }: FiltersProps) {
               }}
             >
               <option value="all">All Positions</option>
-              <option value="Forward">⚡ Forward</option>
-              <option value="Midfielder">🎯 Midfielder</option>
-              <option value="Defender">🛡️ Defender</option>
-              <option value="Goalkeeper">🧤 Goalkeeper</option>
+              <option value="Forward">Forward</option>
+              <option value="Midfielder">Midfielder</option>
+              <option value="Defender">Defender</option>
+              <option value="Goalkeeper">Goalkeeper</option>
             </select>
           </div>
 
-          {/* Price filter */}
+          {/* Rarity filter */}
           <div>
             <label style={{
               display: 'block',
@@ -81,7 +84,41 @@ export function Filters({ onPositionChange, onPriceChange }: FiltersProps) {
               textTransform: 'uppercase',
               letterSpacing: '0.05em',
             }}>
-              Max Price
+              Rarity
+            </label>
+            <select
+              onChange={(e) => onRarityChange(e.target.value)}
+              style={{
+                width: '100%',
+                padding: '12px',
+                background: '#000000',
+                border: '1px solid #374151',
+                borderRadius: '8px',
+                color: 'white',
+                fontSize: '0.875rem',
+                cursor: 'pointer',
+              }}
+            >
+              <option value="all">All Rarities</option>
+              <option value="limited">Limited</option>
+              <option value="rare">Rare</option>
+              <option value="super_rare">Super Rare</option>
+              <option value="unique">Unique</option>
+            </select>
+          </div>
+
+          {/* Price filter — in ETH */}
+          <div>
+            <label style={{
+              display: 'block',
+              fontSize: '0.875rem',
+              fontWeight: '600',
+              color: '#9ca3af',
+              marginBottom: '8px',
+              textTransform: 'uppercase',
+              letterSpacing: '0.05em',
+            }}>
+              Max Price (ETH)
             </label>
             <select
               onChange={(e) => onPriceChange(Number(e.target.value))}
@@ -97,10 +134,11 @@ export function Filters({ onPositionChange, onPriceChange }: FiltersProps) {
               }}
             >
               <option value="9999">Any Price</option>
-              <option value="100">💰 Under €100</option>
-              <option value="200">💵 Under €200</option>
-              <option value="300">💸 Under €300</option>
-              <option value="500">💎 Under €500</option>
+              <option value="0.001">Under 0.001 ETH</option>
+              <option value="0.003">Under 0.003 ETH</option>
+              <option value="0.005">Under 0.005 ETH</option>
+              <option value="0.01">Under 0.01 ETH</option>
+              <option value="0.05">Under 0.05 ETH</option>
             </select>
           </div>
 
@@ -118,6 +156,7 @@ export function Filters({ onPositionChange, onPriceChange }: FiltersProps) {
               Min Value Score
             </label>
             <select
+              onChange={(e) => onValueScoreChange(Number(e.target.value))}
               style={{
                 width: '100%',
                 padding: '12px',
@@ -130,11 +169,12 @@ export function Filters({ onPositionChange, onPriceChange }: FiltersProps) {
               }}
             >
               <option value="0">All Scores</option>
-              <option value="7">⭐ 7.0+</option>
-              <option value="8">⭐⭐ 8.0+</option>
-              <option value="9">⭐⭐⭐ 9.0+</option>
+              <option value="7">7.0+</option>
+              <option value="8">8.0+</option>
+              <option value="9">9.0+</option>
             </select>
           </div>
+
         </div>
       </div>
     </div>

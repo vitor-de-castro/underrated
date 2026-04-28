@@ -11,7 +11,9 @@ export default function Home() {
   const [error, setError] = useState('');
 
   const [selectedPosition, setSelectedPosition] = useState('all');
-  const [maxPrice, setMaxPrice] = useState(9999999999999999);
+  const [selectedRarity, setSelectedRarity] = useState('all');
+  const [maxPrice, setMaxPrice] = useState(9999);
+  const [minValueScore, setMinValueScore] = useState(0);
 
   useEffect(() => {
     async function fetchPlayers() {
@@ -38,10 +40,15 @@ export default function Home() {
       filtered = filtered.filter(p => p.position === selectedPosition);
     }
 
+    if (selectedRarity !== 'all') {
+      filtered = filtered.filter(p => p.rarity === selectedRarity);
+    }
+
     filtered = filtered.filter(p => p.price <= maxPrice);
+    filtered = filtered.filter(p => p.valueScore >= minValueScore);
 
     setFilteredPlayers(filtered);
-  }, [selectedPosition, maxPrice, players]);
+  }, [selectedPosition, selectedRarity, maxPrice, minValueScore, players]);
 
   if (loading) {
     return (
@@ -88,7 +95,7 @@ export default function Home() {
       <div style={{ maxWidth: '1400px', margin: '0 auto' }}>
 
         <div style={{ textAlign: 'center', marginBottom: '48px' }}>
-                    <h1 style={{
+          <h1 style={{
             fontSize: '4rem',
             fontFamily: "'Russo One', sans-serif",
             fontWeight: '900',
@@ -131,6 +138,8 @@ export default function Home() {
         <Filters
           onPositionChange={setSelectedPosition}
           onPriceChange={setMaxPrice}
+          onValueScoreChange={setMinValueScore}
+          onRarityChange={setSelectedRarity}
         />
 
         <div style={{
@@ -142,11 +151,13 @@ export default function Home() {
         }}>
           <div style={{ color: '#9ca3af' }}>
             Showing <span style={{ color: 'white', fontWeight: '600' }}>{filteredPlayers.length}</span> player{filteredPlayers.length !== 1 ? 's' : ''}
-            {selectedPosition !== 'all' && (
+            {(selectedPosition !== 'all' || selectedRarity !== 'all' || maxPrice !== 9999 || minValueScore !== 0) && (
               <button
                 onClick={() => {
                   setSelectedPosition('all');
-                  setMaxPrice(9999999999999999);
+                  setSelectedRarity('all');
+                  setMaxPrice(9999);
+                  setMinValueScore(0);
                 }}
                 style={{
                   marginLeft: '12px',

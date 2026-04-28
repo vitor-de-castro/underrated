@@ -88,12 +88,15 @@ export default function Home() {
       <div style={{ maxWidth: '1400px', margin: '0 auto' }}>
 
         <div style={{ textAlign: 'center', marginBottom: '48px' }}>
-          <h1 style={{
+                    <h1 style={{
             fontSize: '4rem',
             fontFamily: "'Russo One', sans-serif",
             fontWeight: '900',
             marginBottom: '16px',
-            color: '#878787',
+            background: 'linear-gradient(to right, #878787, #c0c0c0, #878787)',
+            WebkitBackgroundClip: 'text',
+            WebkitTextFillColor: 'transparent',
+            backgroundClip: 'text',
             letterSpacing: '0.05em',
           }}>
             UNDERRATED

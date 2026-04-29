@@ -35,18 +35,14 @@ export default function Home() {
 
   useEffect(() => {
     let filtered = [...players];
-
     if (selectedPosition !== 'all') {
       filtered = filtered.filter(p => p.position === selectedPosition);
     }
-
     if (selectedRarity !== 'all') {
       filtered = filtered.filter(p => p.rarity === selectedRarity);
     }
-
     filtered = filtered.filter(p => p.price <= maxPrice);
     filtered = filtered.filter(p => p.valueScore >= minValueScore);
-
     setFilteredPlayers(filtered);
   }, [selectedPosition, selectedRarity, maxPrice, minValueScore, players]);
 
@@ -96,7 +92,7 @@ export default function Home() {
 
         <div style={{ textAlign: 'center', marginBottom: '48px' }}>
           <h1 style={{
-            fontSize: '4rem',
+            fontSize: 'clamp(2rem, 8vw, 4rem)',
             fontFamily: "'Russo One', sans-serif",
             fontWeight: '900',
             marginBottom: '16px',
@@ -108,7 +104,7 @@ export default function Home() {
           }}>
             UNDERRATED
           </h1>
-          <p style={{ fontSize: '1.25rem', color: '#9ca3af', marginBottom: '12px' }}>
+          <p style={{ fontSize: 'clamp(0.9rem, 3vw, 1.25rem)', color: '#9ca3af', marginBottom: '12px' }}>
             Discover undervalued football players on Sorare
           </p>
           <div style={{
@@ -116,6 +112,7 @@ export default function Home() {
             alignItems: 'center',
             justifyContent: 'center',
             gap: '12px',
+            flexWrap: 'wrap',
           }}>
             <span style={{
               padding: '4px 12px',
@@ -148,8 +145,10 @@ export default function Home() {
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'space-between',
+          flexWrap: 'wrap',
+          gap: '8px',
         }}>
-          <div style={{ color: '#9ca3af' }}>
+          <div style={{ color: '#9ca3af', fontSize: 'clamp(0.8rem, 2vw, 1rem)' }}>
             Showing <span style={{ color: 'white', fontWeight: '600' }}>{filteredPlayers.length}</span> player{filteredPlayers.length !== 1 ? 's' : ''}
             {(selectedPosition !== 'all' || selectedRarity !== 'all' || maxPrice !== 9999 || minValueScore !== 0) && (
               <button
@@ -180,13 +179,16 @@ export default function Home() {
         </div>
 
         {filteredPlayers.length > 0 ? (
-          <div style={{
-            display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))',
-            gap: '24px',
-            maxWidth: '1400px',
-            margin: '0 auto',
-          }}>
+          <div
+            className="player-grid"
+            style={{
+              display: 'grid',
+              gridTemplateColumns: 'repeat(auto-fill, minmax(min(320px, 100%), 1fr))',
+              gap: '24px',
+              maxWidth: '1400px',
+              margin: '0 auto',
+            }}
+          >
             {filteredPlayers.map((player) => (
               <PlayerCard
                 key={player.slug}

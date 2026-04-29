@@ -9,47 +9,6 @@ let memoryCache: { timestamp: number; data: any } | null = null;
 let isFetching = false;
 const CACHE_DURATION = 60 * 60 * 1000;
 
-// Known European league clubs — used to filter out MLS/Asian league players
-const EUROPEAN_LEAGUES = [
-  // Premier League
-  'Arsenal', 'Chelsea', 'Liverpool', 'Manchester City', 'Manchester United',
-  'Tottenham', 'Newcastle', 'West Ham', 'Aston Villa', 'Brighton',
-  'Fulham', 'Brentford', 'Crystal Palace', 'Everton', 'Leicester',
-  'Wolves', 'Nottingham Forest', 'Bournemouth', 'Southampton', 'Ipswich',
-  // La Liga
-  'Real Madrid', 'FC Barcelona', 'Atletico Madrid', 'Sevilla', 'Valencia',
-  'Athletic Club', 'Real Sociedad', 'Villarreal', 'Real Betis', 'Getafe',
-  'Osasuna', 'Girona', 'Mallorca', 'Celta Vigo', 'Rayo Vallecano',
-  'Alaves', 'Leganes', 'Valladolid', 'Las Palmas', 'Espanyol',
-  // Bundesliga
-  'Bayern Munich', 'Borussia Dortmund', 'Bayer Leverkusen', 'RB Leipzig',
-  'Eintracht Frankfurt', 'Wolfsburg', 'Freiburg', 'Hoffenheim', 'Mainz',
-  'Borussia Monchengladbach', 'Augsburg', 'Union Berlin', 'Werder Bremen',
-  'VfB Stuttgart', 'Heidenheim', 'Kiel', 'St. Pauli', 'Bochum',
-  // Serie A
-  'Juventus', 'AC Milan', 'Inter Milan', 'Napoli', 'AS Roma', 'Lazio',
-  'Fiorentina', 'Atalanta', 'Torino', 'Bologna', 'Udinese', 'Sampdoria',
-  'Sassuolo', 'Empoli', 'Spezia', 'Monza', 'Lecce', 'Cagliari', 'Verona', 'Como',
-  // Ligue 1
-  'Paris Saint-Germain', 'Olympique de Marseille', 'Olympique Lyonnais',
-  'Monaco', 'Lille', 'Nice', 'Lens', 'Rennes', 'Strasbourg', 'Nantes',
-  'Montpellier', 'Reims', 'Toulouse', 'Brest', 'Le Havre', 'Auxerre',
-  // Eredivisie
-  'Ajax', 'PSV Eindhoven', 'Feyenoord', 'AZ Alkmaar', 'Utrecht',
-  // Primeira Liga
-  'Benfica', 'FC Porto', 'Sporting CP', 'Braga',
-  // Other major European
-  'Celtic', 'Rangers', 'Club Brugge', 'Anderlecht',
-];
-
-function isEuropeanClub(clubName: string): boolean {
-  if (!clubName) return false;
-  const lower = clubName.toLowerCase();
-  return EUROPEAN_LEAGUES.some(club =>
-    lower.includes(club.toLowerCase()) || club.toLowerCase().includes(lower)
-  );
-}
-
 const makeQuery = (last: number, before?: string) => `
   query GetLiveAuctions {
     tokens {
@@ -104,29 +63,22 @@ function readMemoryCache() {
 }
 
 async function fetchFreshData() {
-  // Fetch more cards so we have enough after European filtering
   const batch1 = await fetchAuctions(15);
   const nodes1 = batch1?.nodes ?? [];
-  const cursor = batch1?.pageInfo?.startCursor;
-  const batch2 = cursor ? await fetchAuctions(15, cursor) : { nodes: [] };
+  const cursor1 = batch1?.pageInfo?.startCursor;
+
+  const batch2 = cursor1 ? await fetchAuctions(15, cursor1) : { nodes: [] };
   const nodes2 = (batch2 as any)?.nodes ?? [];
 
-  const allAuctions = [...nodes1, ...nodes2].filter(
+  const validAuctions = [...nodes1, ...nodes2].filter(
     (auction: any) => auction.anyCards?.[0]?.player?.displayName
   );
 
-  // Filter to European clubs only
-  const europeanAuctions = allAuctions.filter((auction: any) => {
-    const clubName = auction.anyCards?.[0]?.player?.activeClub?.name ?? '';
-    return isEuropeanClub(clubName);
-  });
+  console.log(`Total cards: ${validAuctions.length}`);
 
-  console.log(`Total cards: ${allAuctions.length}, European: ${europeanAuctions.length}`);
-
-  // Fetch stats
   const statsMap = await getAllPlayerStats();
 
-  const players = europeanAuctions.map((auction: any) => {
+  const players = validAuctions.map((auction: any) => {
     const card = auction.anyCards[0];
     const player = card.player;
     const priceInEth = parseFloat(auction.currentPrice) / 1e18;

@@ -1,7 +1,15 @@
-* {
-  box-sizing: border-box;
-  margin: 0;
-  padding: 0;
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --background: #000000;
+  --card-bg: #1a1a1a;
+  --text-primary: #ffffff;
+  --text-secondary: #9ca3af;
+  --accent-gold: #DAA520;
+  --accent-red: #ef4444;
+  --accent-green: #10b981;
 }
 
 html {
@@ -9,52 +17,16 @@ html {
 }
 
 body {
-  background: #000000;
-  color: white;
-  font-family: 'JetBrains Mono', monospace;
+  background-color: var(--background);
+  color: var(--text-primary);
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
+    sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
   overflow-x: hidden;
 }
 
-/* Mobile responsive grid */
-@media (max-width: 768px) {
-  main {
-    padding: 24px 12px !important;
-  }
-
-  h1 {
-    font-size: 2.5rem !important;
-  }
-
-  /* Cards grid — single column on mobile */
-  .player-grid {
-    grid-template-columns: 1fr !important;
-  }
-
-  /* Filters — stack vertically */
-  .filters-grid {
-    grid-template-columns: 1fr !important;
-  }
-
-  /* Player card — full width */
-  .player-card-wrapper {
-    max-width: 100% !important;
-  }
-}
-
-@media (max-width: 480px) {
-  h1 {
-    font-size: 2rem !important;
-    letter-spacing: 0.02em !important;
-  }
-
-  p {
-    font-size: 0.9rem !important;
-  }
-}
-
-/* Smooth hover only on non-touch devices */
-@media (hover: hover) {
-  .player-card:hover {
-    transform: scale(1.02);
-  }
+* {
+  box-sizing: border-box;
 }

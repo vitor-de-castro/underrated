@@ -33,12 +33,14 @@ export function Filters({ onPositionChange, onPriceChange, onValueScoreChange, o
           Filters
         </h3>
 
-        <div style={{
-          display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
-          gap: '16px',
-        }}>
-
+        <div
+          className="filters-grid"
+          style={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(auto-fit, minmax(min(200px, 100%), 1fr))',
+            gap: '16px',
+          }}
+        >
           {/* Position filter */}
           <div>
             <label style={{
@@ -107,7 +109,7 @@ export function Filters({ onPositionChange, onPriceChange, onValueScoreChange, o
             </select>
           </div>
 
-          {/* Price filter — in ETH */}
+          {/* Price filter */}
           <div>
             <label style={{
               display: 'block',
@@ -174,7 +176,6 @@ export function Filters({ onPositionChange, onPriceChange, onValueScoreChange, o
               <option value="9">9.0+</option>
             </select>
           </div>
-
         </div>
       </div>
     </div>

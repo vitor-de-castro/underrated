@@ -1,15 +1,54 @@
 import { NextResponse } from 'next/server';
-import fs from 'fs';
-import path from 'path';
+import { getAllPlayerStats, lookupStats, calculateValueScore } from '@/lib/stats-service';
 
 const SORARE_GRAPHQL_URL = 'https://api.sorare.com/federation/graphql';
 const SORARE_JWT_TOKEN = process.env.SORARE_JWT_TOKEN;
 const SORARE_JWT_AUD = process.env.SORARE_JWT_AUD || 'underrated';
-const CACHE_FILE = path.join(process.cwd(), '.cache', 'players.json');
-const CACHE_DURATION = 60 * 60 * 1000;
 
 let memoryCache: { timestamp: number; data: any } | null = null;
 let isFetching = false;
+const CACHE_DURATION = 60 * 60 * 1000;
+
+// Known European league clubs — used to filter out MLS/Asian league players
+const EUROPEAN_LEAGUES = [
+  // Premier League
+  'Arsenal', 'Chelsea', 'Liverpool', 'Manchester City', 'Manchester United',
+  'Tottenham', 'Newcastle', 'West Ham', 'Aston Villa', 'Brighton',
+  'Fulham', 'Brentford', 'Crystal Palace', 'Everton', 'Leicester',
+  'Wolves', 'Nottingham Forest', 'Bournemouth', 'Southampton', 'Ipswich',
+  // La Liga
+  'Real Madrid', 'FC Barcelona', 'Atletico Madrid', 'Sevilla', 'Valencia',
+  'Athletic Club', 'Real Sociedad', 'Villarreal', 'Real Betis', 'Getafe',
+  'Osasuna', 'Girona', 'Mallorca', 'Celta Vigo', 'Rayo Vallecano',
+  'Alaves', 'Leganes', 'Valladolid', 'Las Palmas', 'Espanyol',
+  // Bundesliga
+  'Bayern Munich', 'Borussia Dortmund', 'Bayer Leverkusen', 'RB Leipzig',
+  'Eintracht Frankfurt', 'Wolfsburg', 'Freiburg', 'Hoffenheim', 'Mainz',
+  'Borussia Monchengladbach', 'Augsburg', 'Union Berlin', 'Werder Bremen',
+  'VfB Stuttgart', 'Heidenheim', 'Kiel', 'St. Pauli', 'Bochum',
+  // Serie A
+  'Juventus', 'AC Milan', 'Inter Milan', 'Napoli', 'AS Roma', 'Lazio',
+  'Fiorentina', 'Atalanta', 'Torino', 'Bologna', 'Udinese', 'Sampdoria',
+  'Sassuolo', 'Empoli', 'Spezia', 'Monza', 'Lecce', 'Cagliari', 'Verona', 'Como',
+  // Ligue 1
+  'Paris Saint-Germain', 'Olympique de Marseille', 'Olympique Lyonnais',
+  'Monaco', 'Lille', 'Nice', 'Lens', 'Rennes', 'Strasbourg', 'Nantes',
+  'Montpellier', 'Reims', 'Toulouse', 'Brest', 'Le Havre', 'Auxerre',
+  // Eredivisie
+  'Ajax', 'PSV Eindhoven', 'Feyenoord', 'AZ Alkmaar', 'Utrecht',
+  // Primeira Liga
+  'Benfica', 'FC Porto', 'Sporting CP', 'Braga',
+  // Other major European
+  'Celtic', 'Rangers', 'Club Brugge', 'Anderlecht',
+];
+
+function isEuropeanClub(clubName: string): boolean {
+  if (!clubName) return false;
+  const lower = clubName.toLowerCase();
+  return EUROPEAN_LEAGUES.some(club =>
+    lower.includes(club.toLowerCase()) || club.toLowerCase().includes(lower)
+  );
+}
 
 const makeQuery = (last: number, before?: string) => `
   query GetLiveAuctions {
@@ -57,78 +96,64 @@ async function fetchAuctions(last: number, before?: string) {
   return data?.data?.tokens?.liveAuctions;
 }
 
-function calculateValueScore(priceInEth: number, rarity: string, age: number): number {
-  if (priceInEth === 0) return 0;
-  const rarityBase: Record<string, number> = {
-    unique: 9.5,
-    super_rare: 8.5,
-    rare: 7.5,
-    limited: 6.5,
-  };
-  const base = rarityBase[rarity] ?? 6.0;
-  const priceScore = Math.max(0, 1 - priceInEth * 3);
-  const ageBonus = age < 23 ? 0.5 : age < 26 ? 0.2 : 0;
-  const score = base + priceScore + ageBonus;
-  return Math.min(parseFloat(score.toFixed(1)), 10);
-}
-
-function readCache() {
+function readMemoryCache() {
   if (memoryCache && Date.now() - memoryCache.timestamp < CACHE_DURATION) {
-    console.log('Returning memory cache');
     return memoryCache.data;
-  }
-  try {
-    if (!fs.existsSync(CACHE_FILE)) return null;
-    const raw = fs.readFileSync(CACHE_FILE, 'utf-8');
-    const { timestamp, data } = JSON.parse(raw);
-    if (Date.now() - timestamp < CACHE_DURATION) {
-      console.log('Returning file cache');
-      memoryCache = { timestamp, data };
-      return data;
-    }
-  } catch {
-    return null;
   }
   return null;
 }
 
-function writeCache(data: any) {
-  memoryCache = { timestamp: Date.now(), data };
-  try {
-    fs.mkdirSync(path.dirname(CACHE_FILE), { recursive: true });
-    fs.writeFileSync(CACHE_FILE, JSON.stringify({ timestamp: Date.now(), data }));
-  } catch (err) {
-    console.error('Cache write error:', err);
-  }
-}
-
 async function fetchFreshData() {
+  // Fetch more cards so we have enough after European filtering
   const batch1 = await fetchAuctions(15);
   const nodes1 = batch1?.nodes ?? [];
   const cursor = batch1?.pageInfo?.startCursor;
   const batch2 = cursor ? await fetchAuctions(15, cursor) : { nodes: [] };
   const nodes2 = (batch2 as any)?.nodes ?? [];
 
-  const validAuctions = [...nodes1, ...nodes2].filter(
+  const allAuctions = [...nodes1, ...nodes2].filter(
     (auction: any) => auction.anyCards?.[0]?.player?.displayName
   );
 
-  const players = validAuctions.map((auction: any) => {
+  // Filter to European clubs only
+  const europeanAuctions = allAuctions.filter((auction: any) => {
+    const clubName = auction.anyCards?.[0]?.player?.activeClub?.name ?? '';
+    return isEuropeanClub(clubName);
+  });
+
+  console.log(`Total cards: ${allAuctions.length}, European: ${europeanAuctions.length}`);
+
+  // Fetch stats
+  const statsMap = await getAllPlayerStats();
+
+  const players = europeanAuctions.map((auction: any) => {
     const card = auction.anyCards[0];
     const player = card.player;
     const priceInEth = parseFloat(auction.currentPrice) / 1e18;
+    const stats = lookupStats(player.displayName, statsMap);
+    const position = player.anyPositions?.[0] ?? '';
+
+    console.log(`${player.displayName} (${player.activeClub?.name}): goals=${stats.goals}, assists=${stats.assists}, mins=${stats.minutesPlayed}`);
 
     return {
       slug: card.slug,
       displayName: player.displayName,
-      position: player.anyPositions?.[0] ?? 'Unknown',
+      position,
       age: player.age,
       avatarUrl: card.pictureUrl,
       club: { name: player.activeClub?.name || 'Unknown Club' },
       rarity: card.rarityTyped,
       price: priceInEth,
-      valueScore: calculateValueScore(priceInEth, card.rarityTyped, player.age),
-      stats: { goals: 0, assists: 0 },
+      valueScore: calculateValueScore(
+        priceInEth,
+        stats.goals,
+        stats.assists,
+        stats.minutesPlayed,
+        card.rarityTyped,
+        player.age,
+        position
+      ),
+      stats: { goals: stats.goals, assists: stats.assists },
     };
   });
 
@@ -137,21 +162,23 @@ async function fetchFreshData() {
 
 export async function GET() {
   try {
-    const cached = readCache();
-    if (cached) return NextResponse.json(cached);
+    const cached = readMemoryCache();
+    if (cached) {
+      console.log('Returning memory cache');
+      return NextResponse.json(cached);
+    }
 
     if (isFetching) {
-      console.log('Already fetching, waiting...');
-      await new Promise(resolve => setTimeout(resolve, 3000));
-      const cached2 = readCache();
+      await new Promise(resolve => setTimeout(resolve, 5000));
+      const cached2 = readMemoryCache();
       if (cached2) return NextResponse.json(cached2);
     }
 
     isFetching = true;
-    console.log('Fetching fresh Sorare data...');
+    console.log('Fetching fresh data...');
 
     const data = await fetchFreshData();
-    writeCache(data);
+    memoryCache = { timestamp: Date.now(), data };
     isFetching = false;
 
     return NextResponse.json(data);

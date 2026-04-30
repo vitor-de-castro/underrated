@@ -158,7 +158,7 @@ export function PlayerCard({
           marginBottom: '16px',
           border: '1px solid rgba(16, 185, 129, 0.3)',
         }}>
-          <div style={{ color: '#9ca3af', fontSize: '11px', marginBottom: '4px' }}>Floor Price</div>
+          <div style={{ color: '#9ca3af', fontSize: '11px', marginBottom: '4px' }}>Current Bid</div>
           <div style={{ color: '#10b981', fontSize: '28px', fontWeight: '900' }}>
             {String.fromCharCode(926)}{price.toFixed(4)}
           </div>

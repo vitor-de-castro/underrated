@@ -21,6 +21,10 @@ const makeQuery = (last: number, before?: string) => `
             pictureUrl
             rarityTyped
             ... on Card {
+              latestEnglishAuction {
+                currentPrice
+                endDate
+              }
               player {
                 displayName
                 age
@@ -52,6 +56,7 @@ async function fetchAuctions(last: number, before?: string) {
     body: JSON.stringify({ query: makeQuery(last, before) }),
   });
   const data = await response.json();
+  if (data?.errors) console.log('API errors:', JSON.stringify(data.errors));
   return data?.data?.tokens?.liveAuctions;
 }
 
@@ -85,37 +90,14 @@ async function fetchFreshData() {
   );
 
   console.log(`Total cards: ${validAuctions.length}`);
-
-  // Test floor price
-  const testSlug = validAuctions[0]?.anyCards?.[0]?.slug;
-  if (testSlug) {
-    const floorQuery = `
-      query GetFloorPrice {
-        tokens {
-          offers(assetIds: ["${testSlug}"], direction: sell) {
-            price
-            minPrice
-          }
-        }
-      }
-    `;
-    const floorRes = await fetch(SORARE_GRAPHQL_URL, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${SORARE_JWT_TOKEN}`,
-        'JWT-AUD': SORARE_JWT_AUD,
-      },
-      body: JSON.stringify({ query: floorQuery }),
-    });
-    const floorData = await floorRes.json();
-    console.log('Floor price test:', JSON.stringify(floorData, null, 2));
+  if (validAuctions.length > 0) {
+    console.log('Sample card:', JSON.stringify(validAuctions[0]?.anyCards?.[0], null, 2));
   }
 
   const players = validAuctions.map((auction: any) => {
     const card = auction.anyCards[0];
     const player = card.player;
-    const priceInEth = parseFloat(auction.currentPrice) / 1e18;
+    const auctionPriceInEth = parseFloat(auction.currentPrice) / 1e18;
 
     return {
       slug: card.slug,
@@ -125,9 +107,10 @@ async function fetchFreshData() {
       avatarUrl: card.pictureUrl,
       club: { name: player.activeClub?.name || 'Unknown Club' },
       rarity: card.rarityTyped,
-      price: priceInEth,
+      price: auctionPriceInEth,
+      floorPrice: null,
       endTime: auction.endDate ?? null,
-      valueScore: calculateValueScore(priceInEth, card.rarityTyped, player.age),
+      valueScore: calculateValueScore(auctionPriceInEth, card.rarityTyped, player.age),
       stats: { goals: 0, assists: 0 },
     };
   });

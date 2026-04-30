@@ -52,7 +52,6 @@ async function fetchAuctions(last: number, before?: string) {
     body: JSON.stringify({ query: makeQuery(last, before) }),
   });
   const data = await response.json();
-  console.log('Full API response:', JSON.stringify(data, null, 2));
   return data?.data?.tokens?.liveAuctions;
 }
 
@@ -86,6 +85,32 @@ async function fetchFreshData() {
   );
 
   console.log(`Total cards: ${validAuctions.length}`);
+
+  // Test floor price
+  const testSlug = validAuctions[0]?.anyCards?.[0]?.slug;
+  if (testSlug) {
+    const floorQuery = `
+      query GetFloorPrice {
+        tokens {
+          offers(assetIds: ["${testSlug}"], direction: sell) {
+            price
+            minPrice
+          }
+        }
+      }
+    `;
+    const floorRes = await fetch(SORARE_GRAPHQL_URL, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${SORARE_JWT_TOKEN}`,
+        'JWT-AUD': SORARE_JWT_AUD,
+      },
+      body: JSON.stringify({ query: floorQuery }),
+    });
+    const floorData = await floorRes.json();
+    console.log('Floor price test:', JSON.stringify(floorData, null, 2));
+  }
 
   const players = validAuctions.map((auction: any) => {
     const card = auction.anyCards[0];

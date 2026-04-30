@@ -62,7 +62,7 @@ export function CountdownTimer({ endTime }: CountdownTimerProps) {
         fontSize: '13px',
         fontWeight: urgent ? 'bold' : 'normal',
       }}>
-        {timeLeft === 'Ended' ? 'Auction ended' : `Ends in ${timeLeft}`}
+        {timeLeft === 'Ended' ? 'Auction ended' : `Auction ends in ${timeLeft}`}
       </span>
     </div>
   );

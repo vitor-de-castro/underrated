@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import { PlayerCard } from '@/components/sorare/PlayerCard';
 import { Filters } from '@/components/Filters';
+import { AIAnalyst } from '@/components/AIAnalyst';
 
 export default function Home() {
   const [players, setPlayers] = useState<any[]>([]);
@@ -131,6 +132,8 @@ export default function Home() {
             </span>
           </div>
         </div>
+
+        <AIAnalyst players={players} />
 
         <Filters
           onPositionChange={setSelectedPosition}

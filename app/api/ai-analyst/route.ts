@@ -1,7 +1,4 @@
 import { NextResponse } from 'next/server';
-import Anthropic from '@anthropic-ai/sdk';
-
-const client = new Anthropic({ apiKey: process.env.OPENAI_API_KEY });
 
 export async function POST(request: Request) {
   try {
@@ -33,18 +30,22 @@ Respond ONLY with a JSON array of exactly 5 objects, no markdown, no explanation
   ...
 ]`;
 
-    const message = await client.messages.create({
-      model: 'claude-opus-4-5',
-      max_tokens: 1000,
-      messages: [{ role: 'user', content: prompt }],
+    const response = await fetch('https://api.openai.com/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${process.env.OPENAI_API_KEY}`,
+      },
+      body: JSON.stringify({
+        model: 'gpt-4o-mini',
+        max_tokens: 1000,
+        messages: [{ role: 'user', content: prompt }],
+      }),
     });
 
-    const content = message.content[0];
-    if (content.type !== 'text') {
-      return NextResponse.json({ picks: [] });
-    }
-
-    const clean = content.text.replace(/```json|```/g, '').trim();
+    const data = await response.json();
+    const content = data?.choices?.[0]?.message?.content ?? '';
+    const clean = content.replace(/```json|```/g, '').trim();
     const picks = JSON.parse(clean);
 
     return NextResponse.json({ picks });

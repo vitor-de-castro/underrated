@@ -1,5 +1,4 @@
 import { NextResponse } from 'next/server';
-import { getAllPlayerStats, lookupStats, calculateValueScore } from '@/lib/stats-service';
 
 const SORARE_GRAPHQL_URL = 'https://api.sorare.com/federation/graphql';
 const SORARE_JWT_TOKEN = process.env.SORARE_JWT_TOKEN;
@@ -16,6 +15,7 @@ const makeQuery = (last: number, before?: string) => `
         nodes {
           id
           currentPrice
+          endDate
           anyCards {
             slug
             pictureUrl
@@ -52,7 +52,19 @@ async function fetchAuctions(last: number, before?: string) {
     body: JSON.stringify({ query: makeQuery(last, before) }),
   });
   const data = await response.json();
+  console.log('Full API response:', JSON.stringify(data, null, 2));
   return data?.data?.tokens?.liveAuctions;
+}
+
+function calculateValueScore(priceInEth: number, rarity: string, age: number): number {
+  if (priceInEth === 0) return 0;
+  const rarityBase: Record<string, number> = {
+    unique: 9.5, super_rare: 8.5, rare: 7.5, limited: 6.5,
+  };
+  const base = rarityBase[rarity] ?? 6.0;
+  const priceScore = Math.max(0, 1 - priceInEth * 3);
+  const ageBonus = age < 23 ? 0.5 : age < 26 ? 0.2 : 0;
+  return Math.min(parseFloat((base + priceScore + ageBonus).toFixed(1)), 10);
 }
 
 function readMemoryCache() {
@@ -66,7 +78,6 @@ async function fetchFreshData() {
   const batch1 = await fetchAuctions(15);
   const nodes1 = batch1?.nodes ?? [];
   const cursor1 = batch1?.pageInfo?.startCursor;
-
   const batch2 = cursor1 ? await fetchAuctions(15, cursor1) : { nodes: [] };
   const nodes2 = (batch2 as any)?.nodes ?? [];
 
@@ -76,36 +87,23 @@ async function fetchFreshData() {
 
   console.log(`Total cards: ${validAuctions.length}`);
 
-  const statsMap = await getAllPlayerStats();
-
   const players = validAuctions.map((auction: any) => {
     const card = auction.anyCards[0];
     const player = card.player;
     const priceInEth = parseFloat(auction.currentPrice) / 1e18;
-    const stats = lookupStats(player.displayName, statsMap);
-    const position = player.anyPositions?.[0] ?? '';
-
-    console.log(`${player.displayName} (${player.activeClub?.name}): goals=${stats.goals}, assists=${stats.assists}, mins=${stats.minutesPlayed}`);
 
     return {
       slug: card.slug,
       displayName: player.displayName,
-      position,
+      position: player.anyPositions?.[0] ?? 'Unknown',
       age: player.age,
       avatarUrl: card.pictureUrl,
       club: { name: player.activeClub?.name || 'Unknown Club' },
       rarity: card.rarityTyped,
       price: priceInEth,
-      valueScore: calculateValueScore(
-        priceInEth,
-        stats.goals,
-        stats.assists,
-        stats.minutesPlayed,
-        card.rarityTyped,
-        player.age,
-        position
-      ),
-      stats: { goals: stats.goals, assists: stats.assists },
+      endTime: auction.endDate ?? null,
+      valueScore: calculateValueScore(priceInEth, card.rarityTyped, player.age),
+      stats: { goals: 0, assists: 0 },
     };
   });
 

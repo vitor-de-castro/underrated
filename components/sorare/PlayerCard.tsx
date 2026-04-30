@@ -1,5 +1,7 @@
 'use client';
 
+import { CountdownTimer } from '@/components/CountdownTimer';
+
 interface PlayerCardProps {
   name: string;
   club: string;
@@ -12,6 +14,7 @@ interface PlayerCardProps {
   avatarUrl?: string;
   rarity?: string;
   slug: string;
+  endTime?: string | null;
 }
 
 export function PlayerCard({
@@ -26,6 +29,7 @@ export function PlayerCard({
   avatarUrl,
   rarity = 'limited',
   slug,
+  endTime,
 }: PlayerCardProps) {
   const getScoreColor = (score: number) => {
     if (score >= 9) return '#10b981';
@@ -59,6 +63,7 @@ export function PlayerCard({
         onMouseEnter={(e) => (e.currentTarget.style.transform = 'scale(1.02)')}
         onMouseLeave={(e) => (e.currentTarget.style.transform = 'scale(1)')}
       >
+        {/* Rarity badge */}
         <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '16px' }}>
           <div style={{
             background: getRarityColor(rarity),
@@ -85,6 +90,7 @@ export function PlayerCard({
           )}
         </div>
 
+        {/* Player image */}
         <div style={{
           width: '100%',
           height: '420px',
@@ -106,9 +112,9 @@ export function PlayerCard({
           ) : (
             <div style={{ fontSize: '64px', opacity: 0.3 }}>⚽</div>
           )}
-          
         </div>
 
+        {/* Player name */}
         <h3 style={{
           color: 'white',
           fontSize: '20px',
@@ -124,6 +130,10 @@ export function PlayerCard({
           {club} • {age}y
         </p>
 
+        {/* Countdown Timer */}
+        <CountdownTimer endTime={endTime ?? null} />
+
+        {/* Value Score */}
         <div style={{
           background: 'rgba(0,0,0,0.4)',
           borderRadius: '12px',
@@ -140,6 +150,7 @@ export function PlayerCard({
           </div>
         </div>
 
+        {/* Price */}
         <div style={{
           background: 'rgba(16, 185, 129, 0.1)',
           borderRadius: '12px',
@@ -149,10 +160,11 @@ export function PlayerCard({
         }}>
           <div style={{ color: '#9ca3af', fontSize: '11px', marginBottom: '4px' }}>Floor Price</div>
           <div style={{ color: '#10b981', fontSize: '28px', fontWeight: '900' }}>
-            ETH {price.toFixed(4)}
+            {String.fromCharCode(926)}{price.toFixed(4)}
           </div>
         </div>
 
+        {/* View on Sorare button */}
         <a
           href={'https://sorare.com/football/cards/' + slug}
           target="_blank"
@@ -171,6 +183,8 @@ export function PlayerCard({
             textDecoration: 'none',
             boxSizing: 'border-box',
           }}
+          onMouseEnter={(e) => (e.currentTarget.style.background = 'linear-gradient(to right, #ef4444, #dc2626)')}
+          onMouseLeave={(e) => (e.currentTarget.style.background = 'linear-gradient(to right, #dc2626, #b91c1c)')}
         >
           View on Sorare
         </a>

@@ -203,6 +203,7 @@ export default function Home() {
                 assists={player.stats?.assists || 0}
                 avatarUrl={player.avatarUrl}
                 rarity={player.rarity}
+                endTime={player.endTime}
               />
             ))}
           </div>

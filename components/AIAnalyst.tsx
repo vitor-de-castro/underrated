@@ -82,7 +82,7 @@ export function AIAnalyst({ players }: AIAnalystProps) {
             disabled={loading}
             style={{
               padding: '12px 24px',
-              background: loading ? '#374151' : 'linear-gradient(to right, #dc2626, #b91c1c)',
+              background: loading ? '#374151' : 'linear-gradient(to right, #059669, #047857)',
               color: 'white',
               fontWeight: 'bold',
               borderRadius: '10px',

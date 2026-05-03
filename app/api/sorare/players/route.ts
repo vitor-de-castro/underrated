@@ -4,7 +4,7 @@ const SORARE_GRAPHQL_URL = 'https://api.sorare.com/federation/graphql';
 const SORARE_JWT_TOKEN = process.env.SORARE_JWT_TOKEN;
 const SORARE_JWT_AUD = process.env.SORARE_JWT_AUD || 'underrated';
 
-let memoryCache: { timestamp: number; data: any } | null = null;
+let memoryCache: { timestamp: number; data: any; cursor: string | null } | null = null;
 let isFetching = false;
 const CACHE_DURATION = 60 * 60 * 1000;
 
@@ -21,10 +21,6 @@ const makeQuery = (last: number, before?: string) => `
             pictureUrl
             rarityTyped
             ... on Card {
-              latestEnglishAuction {
-                currentPrice
-                endDate
-              }
               player {
                 displayName
                 age
@@ -71,75 +67,95 @@ function calculateValueScore(priceInEth: number, rarity: string, age: number): n
   return Math.min(parseFloat((base + priceScore + ageBonus).toFixed(1)), 10);
 }
 
-function readMemoryCache() {
-  if (memoryCache && Date.now() - memoryCache.timestamp < CACHE_DURATION) {
-    return memoryCache.data;
-  }
-  return null;
+function mapAuctions(auctions: any[]) {
+  return auctions
+    .filter((auction: any) => auction.anyCards?.[0]?.player?.displayName)
+    .map((auction: any) => {
+      const card = auction.anyCards[0];
+      const player = card.player;
+      const priceInEth = parseFloat(auction.currentPrice) / 1e18;
+      return {
+        slug: card.slug,
+        displayName: player.displayName,
+        position: player.anyPositions?.[0] ?? 'Unknown',
+        age: player.age,
+        avatarUrl: card.pictureUrl,
+        club: { name: player.activeClub?.name || 'Unknown Club' },
+        rarity: card.rarityTyped,
+        price: priceInEth,
+        endTime: auction.endDate ?? null,
+        valueScore: calculateValueScore(priceInEth, card.rarityTyped, player.age),
+        stats: { goals: 0, assists: 0 },
+      };
+    });
 }
 
-async function fetchFreshData() {
-  const batch1 = await fetchAuctions(15);
-  const nodes1 = batch1?.nodes ?? [];
-  const cursor1 = batch1?.pageInfo?.startCursor;
-  const batch2 = cursor1 ? await fetchAuctions(15, cursor1) : { nodes: [] };
-  const nodes2 = (batch2 as any)?.nodes ?? [];
-
-  const validAuctions = [...nodes1, ...nodes2].filter(
-    (auction: any) => auction.anyCards?.[0]?.player?.displayName
-  );
-
-  console.log(`Total cards: ${validAuctions.length}`);
-  if (validAuctions.length > 0) {
-    console.log('Sample card:', JSON.stringify(validAuctions[0]?.anyCards?.[0], null, 2));
-  }
-
-  const players = validAuctions.map((auction: any) => {
-    const card = auction.anyCards[0];
-    const player = card.player;
-    const auctionPriceInEth = parseFloat(auction.currentPrice) / 1e18;
-
-    return {
-      slug: card.slug,
-      displayName: player.displayName,
-      position: player.anyPositions?.[0] ?? 'Unknown',
-      age: player.age,
-      avatarUrl: card.pictureUrl,
-      club: { name: player.activeClub?.name || 'Unknown Club' },
-      rarity: card.rarityTyped,
-      price: auctionPriceInEth,
-      floorPrice: null,
-      endTime: auction.endDate ?? null,
-      valueScore: calculateValueScore(auctionPriceInEth, card.rarityTyped, player.age),
-      stats: { goals: 0, assists: 0 },
-    };
-  });
-
-  return players.sort((a, b) => b.valueScore - a.valueScore);
-}
-
-export async function GET() {
+export async function GET(request: Request) {
   try {
-    const cached = readMemoryCache();
-    if (cached) {
-      console.log('Returning memory cache');
-      return NextResponse.json(cached);
+    const { searchParams } = new URL(request.url);
+    const loadMore = searchParams.get('loadMore') === 'true';
+    const cursor = searchParams.get('cursor');
+
+    // Initial load — use cache
+    if (!loadMore) {
+      if (memoryCache && Date.now() - memoryCache.timestamp < CACHE_DURATION) {
+        console.log('Returning memory cache');
+        return NextResponse.json({
+          players: memoryCache.data,
+          nextCursor: memoryCache.cursor,
+          hasMore: !!memoryCache.cursor,
+        });
+      }
+
+      if (isFetching) {
+        await new Promise(resolve => setTimeout(resolve, 5000));
+        if (memoryCache) {
+          return NextResponse.json({
+            players: memoryCache.data,
+            nextCursor: memoryCache.cursor,
+            hasMore: !!memoryCache.cursor,
+          });
+        }
+      }
+
+      isFetching = true;
+      console.log('Fetching fresh data...');
+
+      const batch1 = await fetchAuctions(15);
+      const nodes1 = batch1?.nodes ?? [];
+      const cursor1 = batch1?.pageInfo?.startCursor;
+      const batch2 = cursor1 ? await fetchAuctions(15, cursor1) : { nodes: [], pageInfo: {} };
+      const nodes2 = (batch2 as any)?.nodes ?? [];
+      const nextCursor = (batch2 as any)?.pageInfo?.startCursor ?? null;
+
+      const players = mapAuctions([...nodes1, ...nodes2])
+        .sort((a, b) => b.valueScore - a.valueScore);
+
+      console.log(`Total cards: ${players.length}, hasMore: ${!!nextCursor}`);
+
+      memoryCache = { timestamp: Date.now(), data: players, cursor: nextCursor };
+      isFetching = false;
+
+      return NextResponse.json({ players, nextCursor, hasMore: !!nextCursor });
     }
 
-    if (isFetching) {
-      await new Promise(resolve => setTimeout(resolve, 5000));
-      const cached2 = readMemoryCache();
-      if (cached2) return NextResponse.json(cached2);
-    }
+    // Load more — fetch next batch using cursor
+    if (!cursor) return NextResponse.json({ players: [], nextCursor: null, hasMore: false });
 
-    isFetching = true;
-    console.log('Fetching fresh data...');
+    console.log('Loading more cards...');
+    const batch1 = await fetchAuctions(15, cursor);
+    const nodes1 = batch1?.nodes ?? [];
+    const cursor1 = batch1?.pageInfo?.startCursor;
+    const batch2 = cursor1 ? await fetchAuctions(15, cursor1) : { nodes: [], pageInfo: {} };
+    const nodes2 = (batch2 as any)?.nodes ?? [];
+    const nextCursor = (batch2 as any)?.pageInfo?.startCursor ?? null;
 
-    const data = await fetchFreshData();
-    memoryCache = { timestamp: Date.now(), data };
-    isFetching = false;
+    const players = mapAuctions([...nodes1, ...nodes2])
+      .sort((a, b) => b.valueScore - a.valueScore);
 
-    return NextResponse.json(data);
+    console.log(`Loaded ${players.length} more cards`);
+
+    return NextResponse.json({ players, nextCursor, hasMore: !!nextCursor });
 
   } catch (error) {
     isFetching = false;

@@ -9,7 +9,10 @@ export default function Home() {
   const [players, setPlayers] = useState<any[]>([]);
   const [filteredPlayers, setFilteredPlayers] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [loadingMore, setLoadingMore] = useState(false);
   const [error, setError] = useState('');
+  const [nextCursor, setNextCursor] = useState<string | null>(null);
+  const [hasMore, setHasMore] = useState(false);
 
   const [selectedPosition, setSelectedPosition] = useState('all');
   const [selectedRarity, setSelectedRarity] = useState('all');
@@ -22,8 +25,10 @@ export default function Home() {
         const response = await fetch('/api/sorare/players');
         if (!response.ok) throw new Error('Failed to fetch');
         const data = await response.json();
-        setPlayers(data);
-        setFilteredPlayers(data);
+        setPlayers(data.players);
+        setFilteredPlayers(data.players);
+        setNextCursor(data.nextCursor);
+        setHasMore(data.hasMore);
       } catch (err) {
         setError('Failed to load players. Check console for details.');
         console.error(err);
@@ -33,6 +38,24 @@ export default function Home() {
     }
     fetchPlayers();
   }, []);
+
+  async function loadMore() {
+    if (!nextCursor || loadingMore) return;
+    setLoadingMore(true);
+    try {
+      const response = await fetch(`/api/sorare/players?loadMore=true&cursor=${nextCursor}`);
+      if (!response.ok) throw new Error('Failed to fetch');
+      const data = await response.json();
+      const newPlayers = [...players, ...data.players];
+      setPlayers(newPlayers);
+      setNextCursor(data.nextCursor);
+      setHasMore(data.hasMore);
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setLoadingMore(false);
+    }
+  }
 
   useEffect(() => {
     let filtered = [...players];
@@ -182,34 +205,64 @@ export default function Home() {
         </div>
 
         {filteredPlayers.length > 0 ? (
-          <div
-            className="player-grid"
-            style={{
-              display: 'grid',
-              gridTemplateColumns: 'repeat(auto-fill, minmax(min(320px, 100%), 1fr))',
-              gap: '24px',
-              maxWidth: '1400px',
-              margin: '0 auto',
-            }}
-          >
-            {filteredPlayers.map((player) => (
-              <PlayerCard
-                key={player.slug}
-                slug={player.slug}
-                name={player.displayName}
-                club={player.club?.name || 'Unknown'}
-                position={player.position || 'Unknown'}
-                age={player.age || 0}
-                price={player.price}
-                valueScore={player.valueScore}
-                goals={player.stats?.goals || 0}
-                assists={player.stats?.assists || 0}
-                avatarUrl={player.avatarUrl}
-                rarity={player.rarity}
-                endTime={player.endTime}
-              />
-            ))}
-          </div>
+          <>
+            <div
+              className="player-grid"
+              style={{
+                display: 'grid',
+                gridTemplateColumns: 'repeat(auto-fill, minmax(min(320px, 100%), 1fr))',
+                gap: '24px',
+                maxWidth: '1400px',
+                margin: '0 auto',
+              }}
+            >
+              {filteredPlayers.map((player) => (
+                <PlayerCard
+                  key={player.slug}
+                  slug={player.slug}
+                  name={player.displayName}
+                  club={player.club?.name || 'Unknown'}
+                  position={player.position || 'Unknown'}
+                  age={player.age || 0}
+                  price={player.price}
+                  valueScore={player.valueScore}
+                  goals={player.stats?.goals || 0}
+                  assists={player.stats?.assists || 0}
+                  avatarUrl={player.avatarUrl}
+                  rarity={player.rarity}
+                  endTime={player.endTime}
+                />
+              ))}
+            </div>
+
+            {hasMore && (
+              <div style={{ textAlign: 'center', marginTop: '40px' }}>
+                <button
+                  onClick={loadMore}
+                  disabled={loadingMore}
+                  style={{
+                    padding: '14px 40px',
+                    background: loadingMore ? '#374151' : 'linear-gradient(to right, #1f2937, #374151)',
+                    color: 'white',
+                    fontWeight: 'bold',
+                    borderRadius: '12px',
+                    border: '1px solid #374151',
+                    cursor: loadingMore ? 'not-allowed' : 'pointer',
+                    fontSize: '1rem',
+                    transition: 'all 0.2s',
+                  }}
+                  onMouseEnter={(e) => {
+                    if (!loadingMore) e.currentTarget.style.borderColor = '#6b7280';
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.borderColor = '#374151';
+                  }}
+                >
+                  {loadingMore ? 'Loading...' : 'Load More Cards'}
+                </button>
+              </div>
+            )}
+          </>
         ) : (
           <div style={{ textAlign: 'center', color: '#6b7280', padding: '80px 0' }}>
             <div style={{ fontSize: '4rem', marginBottom: '16px' }}>🔍</div>

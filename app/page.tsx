@@ -18,6 +18,7 @@ export default function Home() {
   const [selectedRarity, setSelectedRarity] = useState('all');
   const [maxPrice, setMaxPrice] = useState(9999);
   const [minValueScore, setMinValueScore] = useState(0);
+  const [sortBy, setSortBy] = useState('valueScore');
 
   useEffect(() => {
     async function fetchPlayers() {
@@ -59,6 +60,7 @@ export default function Home() {
 
   useEffect(() => {
     let filtered = [...players];
+
     if (selectedPosition !== 'all') {
       filtered = filtered.filter(p => p.position === selectedPosition);
     }
@@ -67,8 +69,23 @@ export default function Home() {
     }
     filtered = filtered.filter(p => p.price <= maxPrice);
     filtered = filtered.filter(p => p.valueScore >= minValueScore);
+
+    if (sortBy === 'endingSoon') {
+      filtered = filtered.sort((a, b) => {
+        if (!a.endTime) return 1;
+        if (!b.endTime) return -1;
+        return new Date(a.endTime).getTime() - new Date(b.endTime).getTime();
+      });
+    } else if (sortBy === 'priceLow') {
+      filtered = filtered.sort((a, b) => a.price - b.price);
+    } else if (sortBy === 'priceHigh') {
+      filtered = filtered.sort((a, b) => b.price - a.price);
+    } else {
+      filtered = filtered.sort((a, b) => b.valueScore - a.valueScore);
+    }
+
     setFilteredPlayers(filtered);
-  }, [selectedPosition, selectedRarity, maxPrice, minValueScore, players]);
+  }, [selectedPosition, selectedRarity, maxPrice, minValueScore, sortBy, players]);
 
   if (loading) {
     return (
@@ -199,9 +216,24 @@ export default function Home() {
               </button>
             )}
           </div>
-          <div style={{ fontSize: '0.75rem', color: '#6b7280' }}>
-            Sorted by value score
-          </div>
+          <select
+            onChange={(e) => setSortBy(e.target.value)}
+            value={sortBy}
+            style={{
+              padding: '6px 12px',
+              background: '#1a1a1a',
+              border: '1px solid #374151',
+              borderRadius: '8px',
+              color: 'white',
+              fontSize: '0.75rem',
+              cursor: 'pointer',
+            }}
+          >
+            <option value="valueScore">Sort: Value Score</option>
+            <option value="endingSoon">Sort: Ending Soonest</option>
+            <option value="priceLow">Sort: Price Low to High</option>
+            <option value="priceHigh">Sort: Price High to Low</option>
+          </select>
         </div>
 
         {filteredPlayers.length > 0 ? (

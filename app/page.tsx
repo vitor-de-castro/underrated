@@ -4,6 +4,7 @@ import { useEffect, useState, useMemo } from 'react';
 import { PlayerCard } from '@/components/sorare/PlayerCard';
 import { Filters } from '@/components/Filters';
 import { AIAnalyst } from '@/components/AIAnalyst';
+import { MarketStats } from '@/components/MarketStats';
 
 export default function Home() {
   const [players, setPlayers] = useState<any[]>([]);
@@ -20,7 +21,6 @@ export default function Home() {
   const [minValueScore, setMinValueScore] = useState(0);
   const [sortBy, setSortBy] = useState('valueScore');
 
-  // Calculate average price per rarity from all loaded players
   const averagePrices = useMemo(() => {
     const groups: Record<string, number[]> = {};
     players.forEach(p => {
@@ -187,6 +187,8 @@ export default function Home() {
             </span>
           </div>
         </div>
+
+        <MarketStats players={players} />
 
         <AIAnalyst players={players} />
 

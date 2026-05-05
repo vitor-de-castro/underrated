@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useMemo } from 'react';
 import { PlayerCard } from '@/components/sorare/PlayerCard';
 import { Filters } from '@/components/Filters';
 import { AIAnalyst } from '@/components/AIAnalyst';
@@ -19,6 +19,21 @@ export default function Home() {
   const [maxPrice, setMaxPrice] = useState(9999);
   const [minValueScore, setMinValueScore] = useState(0);
   const [sortBy, setSortBy] = useState('valueScore');
+
+  // Calculate average price per rarity from all loaded players
+  const averagePrices = useMemo(() => {
+    const groups: Record<string, number[]> = {};
+    players.forEach(p => {
+      if (!p.rarity || p.price === 0) return;
+      if (!groups[p.rarity]) groups[p.rarity] = [];
+      groups[p.rarity].push(p.price);
+    });
+    const averages: Record<string, number> = {};
+    Object.entries(groups).forEach(([rarity, prices]) => {
+      averages[rarity] = prices.reduce((a, b) => a + b, 0) / prices.length;
+    });
+    return averages;
+  }, [players]);
 
   useEffect(() => {
     async function fetchPlayers() {
@@ -263,6 +278,7 @@ export default function Home() {
                   avatarUrl={player.avatarUrl}
                   rarity={player.rarity}
                   endTime={player.endTime}
+                  averagePrice={averagePrices[player.rarity] ?? null}
                 />
               ))}
             </div>

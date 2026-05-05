@@ -15,6 +15,7 @@ interface PlayerCardProps {
   rarity?: string;
   slug: string;
   endTime?: string | null;
+  averagePrice?: number | null;
 }
 
 export function PlayerCard({
@@ -30,6 +31,7 @@ export function PlayerCard({
   rarity = 'limited',
   slug,
   endTime,
+  averagePrice,
 }: PlayerCardProps) {
   const getScoreColor = (score: number) => {
     if (score >= 9) return '#10b981';
@@ -48,6 +50,17 @@ export function PlayerCard({
       default: return '#6b7280';
     }
   };
+
+  const getPriceContext = () => {
+    if (!averagePrice || averagePrice === 0 || price === 0) return null;
+    const diff = ((price - averagePrice) / averagePrice) * 100;
+    const absDiff = Math.abs(diff).toFixed(0);
+    if (diff <= -10) return { label: `${absDiff}% below average`, color: '#10b981' };
+    if (diff >= 10) return { label: `${absDiff}% above average`, color: '#ef4444' };
+    return { label: 'Average price', color: '#9ca3af' };
+  };
+
+  const priceContext = getPriceContext();
 
   return (
     <div style={{ maxWidth: '380px', margin: '0 auto', width: '100%' }}>
@@ -158,10 +171,26 @@ export function PlayerCard({
           marginBottom: '16px',
           border: '1px solid rgba(16, 185, 129, 0.3)',
         }}>
-          <div style={{ color: '#9ca3af', fontSize: '11px', marginBottom: '4px' }}>Current Bid</div>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4px' }}>
+            <div style={{ color: '#9ca3af', fontSize: '11px' }}>Current Bid</div>
+            {priceContext && (
+              <div style={{
+                color: priceContext.color,
+                fontSize: '11px',
+                fontWeight: '600',
+              }}>
+                {priceContext.label}
+              </div>
+            )}
+          </div>
           <div style={{ color: '#10b981', fontSize: '28px', fontWeight: '900' }}>
             {String.fromCharCode(926)}{price.toFixed(4)}
           </div>
+          {averagePrice && averagePrice > 0 && (
+            <div style={{ color: '#6b7280', fontSize: '11px', marginTop: '4px' }}>
+              Avg for {rarity.replace('_', ' ')}: {String.fromCharCode(926)}{averagePrice.toFixed(4)}
+            </div>
+          )}
         </div>
 
         {/* View on Sorare button */}

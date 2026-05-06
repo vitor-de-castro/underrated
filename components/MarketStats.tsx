@@ -90,7 +90,7 @@ export function MarketStats({ players }: MarketStatsProps) {
       padding: '0 16px',
     }}>
       <div style={{
-        background: 'linear-gradient(to right, #0f172a, #1e293b)',
+        background: '#1a1a1a',
         border: '1px solid #374151',
         borderRadius: '16px',
         padding: '20px 24px',

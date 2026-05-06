@@ -86,7 +86,7 @@ export function MarketStats({ players }: MarketStatsProps) {
   return (
     <div style={{
       maxWidth: '1200px',
-      margin: '0 auto 32px auto',
+      margin: '0 auto 24px auto',
       padding: '0 16px',
     }}>
       <div style={{
@@ -106,7 +106,7 @@ export function MarketStats({ players }: MarketStatsProps) {
               flexDirection: 'column',
               gap: '4px',
             }}>
-              <div style={{ color: '#6b7280', fontSize: '11px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+              <div style={{ color: '#a2a2a2', fontSize: '11px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
                 {item.icon} {item.label}
               </div>
               <div style={{

@@ -51,14 +51,14 @@ export function AIAnalyst({ players }: AIAnalystProps) {
   return (
     <div style={{
       maxWidth: '1200px',
-      margin: '0 auto 48px auto',
+      margin: '0 auto 24px auto',
       padding: '0 16px',
     }}>
       <div style={{
         background: 'linear-gradient(to bottom, #1a1a2e, #16213e)',
         border: '1px solid #374151',
         borderRadius: '16px',
-        padding: '20px 24px', 
+        padding: '20px 24px',
       }}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '16px', marginBottom: '24px' }}>
           <div>

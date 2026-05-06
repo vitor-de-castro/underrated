@@ -18,7 +18,7 @@ export function Filters({ onPositionChange, onPriceChange, onValueScoreChange, o
         background: '#1a1a1a',
         border: '1px solid #374151',
         borderRadius: '16px',
-        padding: '24px',
+        padding: '16px 24px',
       }}>
         <h3 style={{
           color: 'white',

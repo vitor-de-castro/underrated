@@ -96,17 +96,28 @@ export function MarketStats({ players }: MarketStatsProps) {
         padding: '20px 24px',
       }}>
         <div style={{
-          display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))',
-          gap: '16px',
+          display: 'flex',
+          flexDirection: 'row',
+          gap: '24px',
+          overflowX: 'auto',
+          paddingBottom: '4px',
+          WebkitOverflowScrolling: 'touch' as any,
         }}>
           {statItems.map((item, i) => (
             <div key={i} style={{
               display: 'flex',
               flexDirection: 'column',
               gap: '4px',
+              minWidth: '120px',
+              flexShrink: 0,
             }}>
-              <div style={{ color: '#a2a2a2', fontSize: '11px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+              <div style={{
+                color: '#a2a2a2',
+                fontSize: '11px',
+                textTransform: 'uppercase',
+                letterSpacing: '0.05em',
+                whiteSpace: 'nowrap',
+              }}>
                 {item.icon} {item.label}
               </div>
               <div style={{
@@ -114,6 +125,7 @@ export function MarketStats({ players }: MarketStatsProps) {
                 fontSize: '1.1rem',
                 fontWeight: 'bold',
                 textTransform: 'capitalize',
+                whiteSpace: 'nowrap',
               }}>
                 {item.value}
               </div>

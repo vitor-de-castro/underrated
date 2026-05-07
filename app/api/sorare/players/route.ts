@@ -56,18 +56,46 @@ async function fetchAuctions(last: number, before?: string) {
   return data?.data?.tokens?.liveAuctions;
 }
 
-function calculateValueScore(priceInEth: number, rarity: string, age: number): number {
+function calculateValueScore(
+  priceInEth: number,
+  rarity: string,
+  age: number,
+  avgPriceForRarity: number
+): number {
   if (priceInEth === 0) return 0;
+
   const rarityBase: Record<string, number> = {
     unique: 9.5, super_rare: 8.5, rare: 7.5, limited: 6.5,
   };
   const base = rarityBase[rarity] ?? 6.0;
-  const priceScore = Math.max(0, 1 - priceInEth * 3);
   const ageBonus = age < 23 ? 0.5 : age < 26 ? 0.2 : 0;
-  return Math.min(parseFloat((base + priceScore + ageBonus).toFixed(1)), 10);
+
+  let priceContextScore = 0;
+  if (avgPriceForRarity > 0) {
+    const ratio = priceInEth / avgPriceForRarity;
+    if (ratio < 0.5) priceContextScore = 1.5;
+    else if (ratio < 0.75) priceContextScore = 1.0;
+    else if (ratio < 0.9) priceContextScore = 0.5;
+    else if (ratio < 1.1) priceContextScore = 0;
+    else if (ratio < 1.25) priceContextScore = -0.5;
+    else if (ratio < 1.5) priceContextScore = -1.0;
+    else priceContextScore = -1.5;
+  } else {
+    priceContextScore = Math.max(0, 1 - priceInEth * 3);
+  }
+
+  const score = base + ageBonus + priceContextScore;
+  return Math.min(Math.max(parseFloat(score.toFixed(1)), 0), 10);
 }
 
-function mapAuctions(auctions: any[]) {
+function readMemoryCache() {
+  if (memoryCache && Date.now() - memoryCache.timestamp < CACHE_DURATION) {
+    return memoryCache;
+  }
+  return null;
+}
+
+function mapAuctions(auctions: any[], avgPrices: Record<string, number>) {
   return auctions
     .filter((auction: any) => auction.anyCards?.[0]?.player?.displayName)
     .map((auction: any) => {
@@ -84,10 +112,26 @@ function mapAuctions(auctions: any[]) {
         rarity: card.rarityTyped,
         price: priceInEth,
         endTime: auction.endDate ?? null,
-        valueScore: calculateValueScore(priceInEth, card.rarityTyped, player.age),
+        valueScore: calculateValueScore(priceInEth, card.rarityTyped, player.age, avgPrices[card.rarityTyped] ?? 0),
         stats: { goals: 0, assists: 0 },
       };
     });
+}
+
+function computeAvgPrices(auctions: any[]): Record<string, number> {
+  const rarityGroups: Record<string, number[]> = {};
+  auctions.forEach((auction: any) => {
+    const card = auction.anyCards?.[0];
+    if (!card?.rarityTyped) return;
+    const price = parseFloat(auction.currentPrice) / 1e18;
+    if (!rarityGroups[card.rarityTyped]) rarityGroups[card.rarityTyped] = [];
+    rarityGroups[card.rarityTyped].push(price);
+  });
+  const avgPrices: Record<string, number> = {};
+  Object.entries(rarityGroups).forEach(([rarity, prices]) => {
+    avgPrices[rarity] = prices.reduce((a, b) => a + b, 0) / prices.length;
+  });
+  return avgPrices;
 }
 
 export async function GET(request: Request) {
@@ -96,26 +140,25 @@ export async function GET(request: Request) {
     const loadMore = searchParams.get('loadMore') === 'true';
     const cursor = searchParams.get('cursor');
 
-    // Initial load — use cache
     if (!loadMore) {
-      if (memoryCache && Date.now() - memoryCache.timestamp < CACHE_DURATION) {
+      const cached = readMemoryCache();
+      if (cached) {
         console.log('Returning memory cache');
         return NextResponse.json({
-          players: memoryCache.data,
-          nextCursor: memoryCache.cursor,
-          hasMore: !!memoryCache.cursor,
+          players: cached.data,
+          nextCursor: cached.cursor,
+          hasMore: !!cached.cursor,
         });
       }
 
       if (isFetching) {
         await new Promise(resolve => setTimeout(resolve, 5000));
-        if (memoryCache) {
-          return NextResponse.json({
-            players: memoryCache.data,
-            nextCursor: memoryCache.cursor,
-            hasMore: !!memoryCache.cursor,
-          });
-        }
+        const cached2 = readMemoryCache();
+        if (cached2) return NextResponse.json({
+          players: cached2.data,
+          nextCursor: cached2.cursor,
+          hasMore: !!cached2.cursor,
+        });
       }
 
       isFetching = true;
@@ -128,10 +171,12 @@ export async function GET(request: Request) {
       const nodes2 = (batch2 as any)?.nodes ?? [];
       const nextCursor = (batch2 as any)?.pageInfo?.startCursor ?? null;
 
-      const players = mapAuctions([...nodes1, ...nodes2])
+      const allAuctions = [...nodes1, ...nodes2];
+      const avgPrices = computeAvgPrices(allAuctions);
+      const players = mapAuctions(allAuctions, avgPrices)
         .sort((a, b) => b.valueScore - a.valueScore);
 
-      console.log(`Total cards: ${players.length}, hasMore: ${!!nextCursor}`);
+      console.log(`Total cards: ${players.length}`);
 
       memoryCache = { timestamp: Date.now(), data: players, cursor: nextCursor };
       isFetching = false;
@@ -139,7 +184,7 @@ export async function GET(request: Request) {
       return NextResponse.json({ players, nextCursor, hasMore: !!nextCursor });
     }
 
-    // Load more — fetch next batch using cursor
+    // Load more
     if (!cursor) return NextResponse.json({ players: [], nextCursor: null, hasMore: false });
 
     console.log('Loading more cards...');
@@ -150,7 +195,9 @@ export async function GET(request: Request) {
     const nodes2 = (batch2 as any)?.nodes ?? [];
     const nextCursor = (batch2 as any)?.pageInfo?.startCursor ?? null;
 
-    const players = mapAuctions([...nodes1, ...nodes2])
+    const allAuctions = [...nodes1, ...nodes2];
+    const avgPrices = computeAvgPrices(allAuctions);
+    const players = mapAuctions(allAuctions, avgPrices)
       .sort((a, b) => b.valueScore - a.valueScore);
 
     console.log(`Loaded ${players.length} more cards`);

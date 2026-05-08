@@ -172,10 +172,10 @@ export default function Home() {
           }}>
             <span style={{
               padding: '4px 12px',
-              background: 'rgba(239, 68, 68, 0.2)',
-              border: '1px solid rgba(239, 68, 68, 0.5)',
+              background: 'rgb(179 192 233 / 20%)',
+              border: '1px solid rgb(188 188 188 / 50%',
               borderRadius: '9999px',
-              color: '#f87171',
+              color: '#d8d8d8',
               fontSize: '0.875rem',
               fontWeight: '600',
             }}>

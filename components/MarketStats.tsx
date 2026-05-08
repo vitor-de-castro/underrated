@@ -102,6 +102,7 @@ export function MarketStats({ players }: MarketStatsProps) {
           overflowX: 'auto',
           paddingBottom: '4px',
           WebkitOverflowScrolling: 'touch' as any,
+          justifyContent: 'space-between',
         }}>
           {statItems.map((item, i) => (
             <div key={i} style={{

@@ -201,7 +201,7 @@ export function PlayerCard({
           style={{
             display: 'block',
             width: '100%',
-            background: 'linear-gradient(to right, #dc2626, #b91c1c)',
+            background: 'linear-gradient(to right, rgb(39 70 128), rgb(26 41 71))',
             color: 'white',
             fontWeight: 'bold',
             padding: '12px',
@@ -212,8 +212,8 @@ export function PlayerCard({
             textDecoration: 'none',
             boxSizing: 'border-box',
           }}
-          onMouseEnter={(e) => (e.currentTarget.style.background = 'linear-gradient(to right, #ef4444, #dc2626)')}
-          onMouseLeave={(e) => (e.currentTarget.style.background = 'linear-gradient(to right, #dc2626, #b91c1c)')}
+          onMouseEnter={(e) => (e.currentTarget.style.background = 'linear-gradient(to right, rgb(49 87 158), rgb(33 52 89))')}
+          onMouseLeave={(e) => (e.currentTarget.style.background = 'linear-gradient(to right, rgb(39 70 128), rgb(26 41 71))')}
         >
           View on Sorare
         </a>

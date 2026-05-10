@@ -11,9 +11,12 @@ export default function Home() {
   const [filteredPlayers, setFilteredPlayers] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [loadingMore, setLoadingMore] = useState(false);
+  const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState('');
   const [nextCursor, setNextCursor] = useState<string | null>(null);
   const [hasMore, setHasMore] = useState(false);
+  const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
+  const [minutesAgo, setMinutesAgo] = useState(0);
 
   const [selectedPosition, setSelectedPosition] = useState('all');
   const [selectedRarity, setSelectedRarity] = useState('all');
@@ -35,25 +38,43 @@ export default function Home() {
     return averages;
   }, [players]);
 
+  // Update "X minutes ago" every minute
   useEffect(() => {
-    async function fetchPlayers() {
-      try {
-        const response = await fetch('/api/sorare/players');
-        if (!response.ok) throw new Error('Failed to fetch');
-        const data = await response.json();
-        setPlayers(data.players);
-        setFilteredPlayers(data.players);
-        setNextCursor(data.nextCursor);
-        setHasMore(data.hasMore);
-      } catch (err) {
-        setError('Failed to load players. Check console for details.');
-        console.error(err);
-      } finally {
-        setLoading(false);
-      }
+    if (!lastUpdated) return;
+    const interval = setInterval(() => {
+      const diff = Math.floor((Date.now() - lastUpdated.getTime()) / 60000);
+      setMinutesAgo(diff);
+    }, 60000);
+    return () => clearInterval(interval);
+  }, [lastUpdated]);
+
+  async function fetchPlayers(forceRefresh = false) {
+    try {
+      const url = forceRefresh ? '/api/sorare/players?refresh=true' : '/api/sorare/players';
+      const response = await fetch(url);
+      if (!response.ok) throw new Error('Failed to fetch');
+      const data = await response.json();
+      setPlayers(data.players);
+      setFilteredPlayers(data.players);
+      setNextCursor(data.nextCursor);
+      setHasMore(data.hasMore);
+      setLastUpdated(new Date());
+      setMinutesAgo(0);
+    } catch (err) {
+      setError('Failed to load players. Check console for details.');
+      console.error(err);
     }
-    fetchPlayers();
+  }
+
+  useEffect(() => {
+    fetchPlayers().finally(() => setLoading(false));
   }, []);
+
+  async function handleRefresh() {
+    setRefreshing(true);
+    await fetchPlayers(true);
+    setRefreshing(false);
+  }
 
   async function loadMore() {
     if (!nextCursor || loadingMore) return;
@@ -173,7 +194,7 @@ export default function Home() {
             <span style={{
               padding: '4px 12px',
               background: 'rgb(179 192 233 / 20%)',
-              border: '1px solid rgb(188 188 188 / 50%',
+              border: '1px solid rgb(188 188 188 / 50%)',
               borderRadius: '9999px',
               color: '#d8d8d8',
               fontSize: '0.875rem',
@@ -185,6 +206,38 @@ export default function Home() {
             <span style={{ color: '#6b7280', fontSize: '0.875rem' }}>
               Real-time market data
             </span>
+            {lastUpdated && (
+              <>
+                <span style={{ color: '#4b5563' }}>•</span>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <span style={{ color: '#6b7280', fontSize: '0.875rem' }}>
+                    {minutesAgo === 0 ? 'Updated just now' : `Updated ${minutesAgo}m ago`}
+                  </span>
+                  <button
+                    onClick={handleRefresh}
+                    disabled={refreshing}
+                    style={{
+                      padding: '3px 10px',
+                      background: 'transparent',
+                      border: '1px solid #374151',
+                      borderRadius: '6px',
+                      color: refreshing ? '#6b7280' : '#9ca3af',
+                      fontSize: '0.75rem',
+                      cursor: refreshing ? 'not-allowed' : 'pointer',
+                      transition: 'all 0.2s',
+                    }}
+                    onMouseEnter={(e) => {
+                      if (!refreshing) e.currentTarget.style.borderColor = '#6b7280';
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.borderColor = '#374151';
+                    }}
+                  >
+                    {refreshing ? '↻ Refreshing...' : '↻ Refresh'}
+                  </button>
+                </div>
+              </>
+            )}
           </div>
         </div>
 

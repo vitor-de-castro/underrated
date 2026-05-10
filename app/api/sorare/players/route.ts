@@ -134,73 +134,76 @@ function computeAvgPrices(auctions: any[]): Record<string, number> {
   return avgPrices;
 }
 
+async function fetchFreshBatch() {
+  const batch1 = await fetchAuctions(15);
+  const nodes1 = batch1?.nodes ?? [];
+  const cursor1 = batch1?.pageInfo?.startCursor;
+  const batch2 = cursor1 ? await fetchAuctions(15, cursor1) : { nodes: [], pageInfo: {} };
+  const nodes2 = (batch2 as any)?.nodes ?? [];
+  const nextCursor = (batch2 as any)?.pageInfo?.startCursor ?? null;
+  return { nodes: [...nodes1, ...nodes2], nextCursor };
+}
+
 export async function GET(request: Request) {
   try {
     const { searchParams } = new URL(request.url);
     const loadMore = searchParams.get('loadMore') === 'true';
+    const forceRefresh = searchParams.get('refresh') === 'true';
     const cursor = searchParams.get('cursor');
 
-    if (!loadMore) {
-      const cached = readMemoryCache();
-      if (cached) {
-        console.log('Returning memory cache');
-        return NextResponse.json({
-          players: cached.data,
-          nextCursor: cached.cursor,
-          hasMore: !!cached.cursor,
-        });
-      }
-
-      if (isFetching) {
-        await new Promise(resolve => setTimeout(resolve, 5000));
-        const cached2 = readMemoryCache();
-        if (cached2) return NextResponse.json({
-          players: cached2.data,
-          nextCursor: cached2.cursor,
-          hasMore: !!cached2.cursor,
-        });
-      }
-
-      isFetching = true;
-      console.log('Fetching fresh data...');
-
-      const batch1 = await fetchAuctions(15);
+    // Load more — always fetch fresh
+    if (loadMore) {
+      if (!cursor) return NextResponse.json({ players: [], nextCursor: null, hasMore: false });
+      console.log('Loading more cards...');
+      const batch1 = await fetchAuctions(15, cursor);
       const nodes1 = batch1?.nodes ?? [];
       const cursor1 = batch1?.pageInfo?.startCursor;
       const batch2 = cursor1 ? await fetchAuctions(15, cursor1) : { nodes: [], pageInfo: {} };
       const nodes2 = (batch2 as any)?.nodes ?? [];
       const nextCursor = (batch2 as any)?.pageInfo?.startCursor ?? null;
-
       const allAuctions = [...nodes1, ...nodes2];
       const avgPrices = computeAvgPrices(allAuctions);
-      const players = mapAuctions(allAuctions, avgPrices)
-        .sort((a, b) => b.valueScore - a.valueScore);
-
-      console.log(`Total cards: ${players.length}`);
-
-      memoryCache = { timestamp: Date.now(), data: players, cursor: nextCursor };
-      isFetching = false;
-
+      const players = mapAuctions(allAuctions, avgPrices).sort((a, b) => b.valueScore - a.valueScore);
       return NextResponse.json({ players, nextCursor, hasMore: !!nextCursor });
     }
 
-    // Load more
-    if (!cursor) return NextResponse.json({ players: [], nextCursor: null, hasMore: false });
+    // Force refresh — clear cache
+    if (forceRefresh) {
+      console.log('Force refreshing data...');
+      memoryCache = null;
+    }
 
-    console.log('Loading more cards...');
-    const batch1 = await fetchAuctions(15, cursor);
-    const nodes1 = batch1?.nodes ?? [];
-    const cursor1 = batch1?.pageInfo?.startCursor;
-    const batch2 = cursor1 ? await fetchAuctions(15, cursor1) : { nodes: [], pageInfo: {} };
-    const nodes2 = (batch2 as any)?.nodes ?? [];
-    const nextCursor = (batch2 as any)?.pageInfo?.startCursor ?? null;
+    // Return cache if valid
+    const cached = readMemoryCache();
+    if (cached) {
+      console.log('Returning memory cache');
+      return NextResponse.json({
+        players: cached.data,
+        nextCursor: cached.cursor,
+        hasMore: !!cached.cursor,
+      });
+    }
 
-    const allAuctions = [...nodes1, ...nodes2];
-    const avgPrices = computeAvgPrices(allAuctions);
-    const players = mapAuctions(allAuctions, avgPrices)
-      .sort((a, b) => b.valueScore - a.valueScore);
+    if (isFetching) {
+      await new Promise(resolve => setTimeout(resolve, 5000));
+      const cached2 = readMemoryCache();
+      if (cached2) return NextResponse.json({
+        players: cached2.data,
+        nextCursor: cached2.cursor,
+        hasMore: !!cached2.cursor,
+      });
+    }
 
-    console.log(`Loaded ${players.length} more cards`);
+    isFetching = true;
+    console.log('Fetching fresh data...');
+
+    const { nodes, nextCursor } = await fetchFreshBatch();
+    const avgPrices = computeAvgPrices(nodes);
+    const players = mapAuctions(nodes, avgPrices).sort((a, b) => b.valueScore - a.valueScore);
+
+    console.log(`Total cards: ${players.length}`);
+    memoryCache = { timestamp: Date.now(), data: players, cursor: nextCursor };
+    isFetching = false;
 
     return NextResponse.json({ players, nextCursor, hasMore: !!nextCursor });
 

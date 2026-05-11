@@ -5,6 +5,62 @@ import { PlayerCard } from '@/components/sorare/PlayerCard';
 import { Filters } from '@/components/Filters';
 import { AIAnalyst } from '@/components/AIAnalyst';
 import { MarketStats } from '@/components/MarketStats';
+import { PlayerSearch } from '@/components/PlayerSearch';
+
+const LEAGUE_CLUBS: Record<string, string[]> = {
+  premier_league: [
+    'arsenal', 'chelsea', 'liverpool', 'manchester city', 'manchester united',
+    'tottenham', 'newcastle', 'west ham', 'aston villa', 'brighton',
+    'fulham', 'brentford', 'crystal palace', 'everton', 'leicester',
+    'wolves', 'nottingham forest', 'bournemouth', 'southampton', 'ipswich',
+    'burnley', 'luton', 'sheffield united',
+  ],
+  la_liga: [
+    'real madrid', 'barcelona', 'atletico madrid', 'sevilla', 'valencia',
+    'athletic club', 'real sociedad', 'villarreal', 'real betis', 'getafe',
+    'osasuna', 'girona', 'mallorca', 'celta vigo', 'rayo vallecano',
+    'alaves', 'leganes', 'valladolid', 'las palmas', 'espanyol', 'elche',
+  ],
+  bundesliga: [
+    'bayern munich', 'borussia dortmund', 'bayer leverkusen', 'rb leipzig',
+    'eintracht frankfurt', 'wolfsburg', 'freiburg', 'hoffenheim', 'mainz',
+    'borussia monchengladbach', 'augsburg', 'union berlin', 'werder bremen',
+    'vfb stuttgart', 'heidenheim', 'st. pauli', 'bochum',
+  ],
+  serie_a: [
+    'juventus', 'ac milan', 'inter milan', 'napoli', 'as roma', 'lazio',
+    'fiorentina', 'atalanta', 'torino', 'bologna', 'udinese',
+    'empoli', 'monza', 'lecce', 'cagliari', 'verona', 'como', 'genoa', 'parma',
+  ],
+  ligue_1: [
+    'paris saint-germain', 'olympique de marseille', 'olympique lyonnais',
+    'monaco', 'lille', 'nice', 'lens', 'rennes', 'strasbourg', 'nantes',
+    'montpellier', 'reims', 'toulouse', 'brest', 'le havre', 'auxerre', 'lorient',
+  ],
+  mls: [
+    'inter miami', 'la galaxy', 'lafc', 'seattle sounders', 'portland timbers',
+    'new york city', 'new york red bulls', 'atlanta united', 'orlando city',
+    'nashville', 'austin fc', 'charlotte fc', 'chicago fire', 'colorado rapids',
+    'columbus crew', 'fc dallas', 'houston dynamo', 'minnesota united',
+    'new england revolution', 'philadelphia union', 'real salt lake',
+    'san jose earthquakes', 'sporting kansas city', 'toronto fc',
+    'vancouver whitecaps', 'dc united', 'montreal', 'cincinnati', 'st. louis',
+    'san diego',
+  ],
+};
+
+const EUROPEAN_LEAGUES = ['premier_league', 'la_liga', 'bundesliga', 'serie_a', 'ligue_1'];
+
+function getLeagueForClub(clubName: string): string {
+  if (!clubName) return 'other';
+  const lower = clubName.toLowerCase();
+  for (const [league, clubs] of Object.entries(LEAGUE_CLUBS)) {
+    if (clubs.some(club => lower.includes(club) || club.includes(lower))) {
+      return league;
+    }
+  }
+  return 'other';
+}
 
 export default function Home() {
   const [players, setPlayers] = useState<any[]>([]);
@@ -20,6 +76,7 @@ export default function Home() {
 
   const [selectedPosition, setSelectedPosition] = useState('all');
   const [selectedRarity, setSelectedRarity] = useState('all');
+  const [selectedLeague, setSelectedLeague] = useState('all');
   const [maxPrice, setMaxPrice] = useState(9999);
   const [minValueScore, setMinValueScore] = useState(0);
   const [sortBy, setSortBy] = useState('valueScore');
@@ -38,7 +95,6 @@ export default function Home() {
     return averages;
   }, [players]);
 
-  // Update "X minutes ago" every minute
   useEffect(() => {
     if (!lastUpdated) return;
     const interval = setInterval(() => {
@@ -97,6 +153,14 @@ export default function Home() {
   useEffect(() => {
     let filtered = [...players];
 
+    if (selectedLeague !== 'all') {
+      filtered = filtered.filter(p => {
+        const league = getLeagueForClub(p.club?.name ?? '');
+        if (selectedLeague === 'european') return EUROPEAN_LEAGUES.includes(league);
+        return league === selectedLeague;
+      });
+    }
+
     if (selectedPosition !== 'all') {
       filtered = filtered.filter(p => p.position === selectedPosition);
     }
@@ -121,7 +185,7 @@ export default function Home() {
     }
 
     setFilteredPlayers(filtered);
-  }, [selectedPosition, selectedRarity, maxPrice, minValueScore, sortBy, players]);
+  }, [selectedPosition, selectedRarity, selectedLeague, maxPrice, minValueScore, sortBy, players]);
 
   if (loading) {
     return (
@@ -243,6 +307,8 @@ export default function Home() {
 
         <MarketStats players={players} />
 
+        <PlayerSearch />
+
         <AIAnalyst players={players} />
 
         <Filters
@@ -250,6 +316,7 @@ export default function Home() {
           onPriceChange={setMaxPrice}
           onValueScoreChange={setMinValueScore}
           onRarityChange={setSelectedRarity}
+          onLeagueChange={setSelectedLeague}
         />
 
         <div style={{
@@ -263,11 +330,12 @@ export default function Home() {
         }}>
           <div style={{ color: '#9ca3af', fontSize: 'clamp(0.8rem, 2vw, 1rem)' }}>
             Showing <span style={{ color: 'white', fontWeight: '600' }}>{filteredPlayers.length}</span> player{filteredPlayers.length !== 1 ? 's' : ''}
-            {(selectedPosition !== 'all' || selectedRarity !== 'all' || maxPrice !== 9999 || minValueScore !== 0) && (
+            {(selectedPosition !== 'all' || selectedRarity !== 'all' || selectedLeague !== 'all' || maxPrice !== 9999 || minValueScore !== 0) && (
               <button
                 onClick={() => {
                   setSelectedPosition('all');
                   setSelectedRarity('all');
+                  setSelectedLeague('all');
                   setMaxPrice(9999);
                   setMinValueScore(0);
                 }}

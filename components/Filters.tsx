@@ -5,13 +5,14 @@ interface FiltersProps {
   onPriceChange: (maxPrice: number) => void;
   onValueScoreChange: (minScore: number) => void;
   onRarityChange: (rarity: string) => void;
+  onLeagueChange: (league: string) => void;
 }
 
-export function Filters({ onPositionChange, onPriceChange, onValueScoreChange, onRarityChange }: FiltersProps) {
+export function Filters({ onPositionChange, onPriceChange, onValueScoreChange, onRarityChange, onLeagueChange }: FiltersProps) {
   return (
     <div style={{
       maxWidth: '1200px',
-      margin: '0 auto 32px auto',
+      margin: '0 auto 24px auto',
       padding: '0 16px',
     }}>
       <div style={{
@@ -41,6 +42,43 @@ export function Filters({ onPositionChange, onPriceChange, onValueScoreChange, o
             gap: '16px',
           }}
         >
+          {/* League filter */}
+          <div>
+            <label style={{
+              display: 'block',
+              fontSize: '0.875rem',
+              fontWeight: '600',
+              color: '#9ca3af',
+              marginBottom: '8px',
+              textTransform: 'uppercase',
+              letterSpacing: '0.05em',
+            }}>
+              League
+            </label>
+            <select
+              onChange={(e) => onLeagueChange(e.target.value)}
+              style={{
+                width: '100%',
+                padding: '12px',
+                background: '#000000',
+                border: '1px solid #374151',
+                borderRadius: '8px',
+                color: 'white',
+                fontSize: '0.875rem',
+                cursor: 'pointer',
+              }}
+            >
+              <option value="all">All Leagues</option>
+              <option value="premier_league">Premier League</option>
+              <option value="la_liga">La Liga</option>
+              <option value="bundesliga">Bundesliga</option>
+              <option value="serie_a">Serie A</option>
+              <option value="ligue_1">Ligue 1</option>
+              <option value="european">All European</option>
+              <option value="mls">MLS</option>
+            </select>
+          </div>
+
           {/* Position filter */}
           <div>
             <label style={{

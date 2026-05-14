@@ -69,12 +69,13 @@ export function Filters({ onPositionChange, onPriceChange, onValueScoreChange, o
               }}
             >
               <option value="all">All Leagues</option>
+              <option value="european">All European</option>
               <option value="premier_league">Premier League</option>
               <option value="la_liga">La Liga</option>
               <option value="bundesliga">Bundesliga</option>
               <option value="serie_a">Serie A</option>
               <option value="ligue_1">Ligue 1</option>
-              <option value="european">All European</option>
+              <option value="other_european">Other European</option>
               <option value="mls">MLS</option>
             </select>
           </div>

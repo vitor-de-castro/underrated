@@ -64,27 +64,33 @@ function calculateValueScore(
 ): number {
   if (priceInEth === 0) return 0;
 
-  const rarityBase: Record<string, number> = {
-    unique: 9.5, super_rare: 8.5, rare: 7.5, limited: 6.5,
-  };
-  const base = rarityBase[rarity] ?? 6.0;
-  const ageBonus = age < 23 ? 0.5 : age < 26 ? 0.2 : 0;
-
-  let priceContextScore = 0;
+  let priceContextScore = 5.0;
   if (avgPriceForRarity > 0) {
     const ratio = priceInEth / avgPriceForRarity;
-    if (ratio < 0.5) priceContextScore = 1.5;
-    else if (ratio < 0.75) priceContextScore = 1.0;
-    else if (ratio < 0.9) priceContextScore = 0.5;
-    else if (ratio < 1.1) priceContextScore = 0;
-    else if (ratio < 1.25) priceContextScore = -0.5;
-    else if (ratio < 1.5) priceContextScore = -1.0;
-    else priceContextScore = -1.5;
-  } else {
-    priceContextScore = Math.max(0, 1 - priceInEth * 3);
+    if (ratio < 0.5) priceContextScore = 8.5;
+    else if (ratio < 0.65) priceContextScore = 7.5;
+    else if (ratio < 0.8) priceContextScore = 6.5;
+    else if (ratio < 0.9) priceContextScore = 6.0;
+    else if (ratio < 1.1) priceContextScore = 5.5;
+    else if (ratio < 1.25) priceContextScore = 4.5;
+    else if (ratio < 1.5) priceContextScore = 3.5;
+    else if (ratio < 2.0) priceContextScore = 2.5;
+    else priceContextScore = 1.5;
   }
 
-  const score = base + ageBonus + priceContextScore;
+  // Age bonus
+  const ageBonus = age < 21 ? 0.5 : age < 24 ? 0.3 : age < 27 ? 0.1 : 0;
+
+  // Rarity bonus — small tiebreaker only
+  const rarityBonus: Record<string, number> = {
+    unique: 0.5,
+    super_rare: 0.3,
+    rare: 0.1,
+    limited: 0,
+  };
+  const rBonus = rarityBonus[rarity] ?? 0;
+
+  const score = priceContextScore + ageBonus + rBonus;
   return Math.min(Math.max(parseFloat(score.toFixed(1)), 0), 10);
 }
 

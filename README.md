@@ -1,4 +1,4 @@
-# UNDERRATED 
+# UNDERRATED
 
 **Real-time Sorare football card analytics platform for discovering undervalued cards in live auctions.**
 
@@ -90,13 +90,13 @@ components/
 
 ## Value Score
 
-The value score (0-10) is calculated per card based on:
+The value score (0-10) measures how undervalued a card is based on:
 
-- **Rarity base score** — Unique (9.5), Super Rare (8.5), Rare (7.5), Limited (6.5)
-- **Price context** — Cards priced 50%+ below rarity average get +1.5, overpriced cards get up to -1.5
-- **Age bonus** — Under 23 gets +0.5, under 26 gets +0.2
+- **Price context (dominant factor)** — how the current bid compares to the average price for that rarity across all loaded cards. A card 50%+ below average scores 8.5, a card at average scores 5.5, an overpriced card scores 1.5
+- **Age bonus** — under 21 gets +0.5, under 24 gets +0.3, under 27 gets +0.1. Younger players have more upside
+- **Rarity bonus (tiebreaker)** — Unique +0.5, Super Rare +0.3, Rare +0.1, Limited +0. Scarcity within the same price context adds marginal value
 
----
+A 10/10 requires a card to be significantly below average price, young, and scarce. An average-priced card scores around 5.5.
 
 ## JWT Token Renewal
 

@@ -532,6 +532,7 @@ export default function Home() {
                   rarity={player.rarity}
                   endTime={player.endTime}
                   averagePrice={averagePrices[player.rarity] ?? null}
+                  fplData={player.fplData ?? null}
                 />
               ))}
             </div>

@@ -1,6 +1,19 @@
 'use client';
 
 import { CountdownTimer } from '@/components/CountdownTimer';
+import { FPLStats } from '@/components/FPLStats';
+
+interface FPLData {
+  form: string;
+  totalPoints: number;
+  minutes: number;
+  goalsScored: number;
+  assists: number;
+  expectedGoals: string;
+  expectedAssists: string;
+  status: string;
+  news: string;
+}
 
 interface PlayerCardProps {
   name: string;
@@ -16,6 +29,7 @@ interface PlayerCardProps {
   slug: string;
   endTime?: string | null;
   averagePrice?: number | null;
+  fplData?: FPLData | null;
 }
 
 export function PlayerCard({
@@ -32,6 +46,7 @@ export function PlayerCard({
   slug,
   endTime,
   averagePrice,
+  fplData,
 }: PlayerCardProps) {
   const getScoreColor = (score: number) => {
     if (score >= 9) return '#10b981';
@@ -89,18 +104,33 @@ export function PlayerCard({
           }}>
             {rarity.replace('_', ' ')}
           </div>
-          {valueScore >= 7 && (
-            <div style={{
-              background: '#ef4444',
-              color: 'white',
-              padding: '4px 12px',
-              borderRadius: '12px',
-              fontSize: '11px',
-              fontWeight: 'bold',
-            }}>
-              HOT
-            </div>
-          )}
+          <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+            {fplData && (
+              <div style={{
+                background: 'rgba(99, 102, 241, 0.2)',
+                border: '1px solid rgba(99, 102, 241, 0.5)',
+                color: '#a5b4fc',
+                padding: '4px 10px',
+                borderRadius: '12px',
+                fontSize: '11px',
+                fontWeight: 'bold',
+              }}>
+                PL
+              </div>
+            )}
+            {valueScore >= 7 && (
+              <div style={{
+                background: '#ef4444',
+                color: 'white',
+                padding: '4px 12px',
+                borderRadius: '12px',
+                fontSize: '11px',
+                fontWeight: 'bold',
+              }}>
+                HOT
+              </div>
+            )}
+          </div>
         </div>
 
         {/* Player image */}
@@ -146,6 +176,9 @@ export function PlayerCard({
         {/* Countdown Timer */}
         <CountdownTimer endTime={endTime ?? null} />
 
+        {/* FPL Stats — only for PL players */}
+        {fplData && <FPLStats fplData={fplData} />}
+
         {/* Value Score */}
         <div style={{
           background: 'rgba(0,0,0,0.4)',
@@ -174,11 +207,7 @@ export function PlayerCard({
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4px' }}>
             <div style={{ color: '#9ca3af', fontSize: '11px' }}>Current Bid</div>
             {priceContext && (
-              <div style={{
-                color: priceContext.color,
-                fontSize: '11px',
-                fontWeight: '600',
-              }}>
+              <div style={{ color: priceContext.color, fontSize: '11px', fontWeight: '600' }}>
                 {priceContext.label}
               </div>
             )}

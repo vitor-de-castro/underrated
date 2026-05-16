@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { getFPLData, lookupFPLPlayer } from '@/lib/fpl-service';
 
 const SORARE_GRAPHQL_URL = 'https://api.sorare.com/federation/graphql';
 const SORARE_JWT_TOKEN = process.env.SORARE_JWT_TOKEN;
@@ -7,6 +8,21 @@ const SORARE_JWT_AUD = process.env.SORARE_JWT_AUD || 'underrated';
 let memoryCache: { timestamp: number; data: any; cursor: string | null } | null = null;
 let isFetching = false;
 const CACHE_DURATION = 60 * 60 * 1000;
+
+// Premier League clubs for FPL matching
+const PREMIER_LEAGUE_CLUBS = [
+  'arsenal', 'chelsea', 'liverpool', 'manchester city', 'manchester united',
+  'tottenham', 'newcastle', 'west ham', 'aston villa', 'brighton',
+  'fulham', 'brentford', 'crystal palace', 'everton', 'leicester',
+  'wolves', 'wolverhampton', 'nottingham forest', 'bournemouth', 'southampton',
+  'ipswich', 'burnley', 'luton', 'sheffield united',
+];
+
+function isPremierLeagueClub(clubName: string): boolean {
+  if (!clubName) return false;
+  const lower = clubName.toLowerCase();
+  return PREMIER_LEAGUE_CLUBS.some(club => lower.includes(club) || club.includes(lower));
+}
 
 const makeQuery = (last: number, before?: string) => `
   query GetLiveAuctions {
@@ -78,10 +94,8 @@ function calculateValueScore(
     else priceContextScore = 1.5;
   }
 
-  // Age bonus
   const ageBonus = age < 21 ? 0.5 : age < 24 ? 0.3 : age < 27 ? 0.1 : 0;
 
-  // Rarity bonus — small tiebreaker only
   const rarityBonus: Record<string, number> = {
     unique: 0.5,
     super_rare: 0.3,
@@ -101,29 +115,6 @@ function readMemoryCache() {
   return null;
 }
 
-function mapAuctions(auctions: any[], avgPrices: Record<string, number>) {
-  return auctions
-    .filter((auction: any) => auction.anyCards?.[0]?.player?.displayName)
-    .map((auction: any) => {
-      const card = auction.anyCards[0];
-      const player = card.player;
-      const priceInEth = parseFloat(auction.currentPrice) / 1e18;
-      return {
-        slug: card.slug,
-        displayName: player.displayName,
-        position: player.anyPositions?.[0] ?? 'Unknown',
-        age: player.age,
-        avatarUrl: card.pictureUrl,
-        club: { name: player.activeClub?.name || 'Unknown Club' },
-        rarity: card.rarityTyped,
-        price: priceInEth,
-        endTime: auction.endDate ?? null,
-        valueScore: calculateValueScore(priceInEth, card.rarityTyped, player.age, avgPrices[card.rarityTyped] ?? 0),
-        stats: { goals: 0, assists: 0 },
-      };
-    });
-}
-
 function computeAvgPrices(auctions: any[]): Record<string, number> {
   const rarityGroups: Record<string, number[]> = {};
   auctions.forEach((auction: any) => {
@@ -140,14 +131,52 @@ function computeAvgPrices(auctions: any[]): Record<string, number> {
   return avgPrices;
 }
 
-async function fetchFreshBatch() {
-  const batch1 = await fetchAuctions(15);
-  const nodes1 = batch1?.nodes ?? [];
-  const cursor1 = batch1?.pageInfo?.startCursor;
-  const batch2 = cursor1 ? await fetchAuctions(15, cursor1) : { nodes: [], pageInfo: {} };
-  const nodes2 = (batch2 as any)?.nodes ?? [];
-  const nextCursor = (batch2 as any)?.pageInfo?.startCursor ?? null;
-  return { nodes: [...nodes1, ...nodes2], nextCursor };
+async function mapAuctions(auctions: any[], avgPrices: Record<string, number>) {
+  const fplMap = await getFPLData();
+
+  return auctions
+    .filter((auction: any) => auction.anyCards?.[0]?.player?.displayName)
+    .map((auction: any) => {
+      const card = auction.anyCards[0];
+      const player = card.player;
+      const priceInEth = parseFloat(auction.currentPrice) / 1e18;
+      const clubName = player.activeClub?.name ?? '';
+
+      // Look up FPL data for Premier League players
+      let fplData = null;
+      if (isPremierLeagueClub(clubName)) {
+        const fplPlayer = lookupFPLPlayer(player.displayName, fplMap);
+        if (fplPlayer) {
+          fplData = {
+            form: fplPlayer.form,
+            totalPoints: fplPlayer.total_points,
+            minutes: fplPlayer.minutes,
+            goalsScored: fplPlayer.goals_scored,
+            assists: fplPlayer.assists,
+            expectedGoals: fplPlayer.expected_goals,
+            expectedAssists: fplPlayer.expected_assists,
+            status: fplPlayer.status,
+            news: fplPlayer.news,
+          };
+          console.log(`FPL match: ${player.displayName} -> form=${fplPlayer.form}, xG=${fplPlayer.expected_goals}, status=${fplPlayer.status}`);
+        }
+      }
+
+      return {
+        slug: card.slug,
+        displayName: player.displayName,
+        position: player.anyPositions?.[0] ?? 'Unknown',
+        age: player.age,
+        avatarUrl: card.pictureUrl,
+        club: { name: clubName || 'Unknown Club' },
+        rarity: card.rarityTyped,
+        price: priceInEth,
+        endTime: auction.endDate ?? null,
+        valueScore: calculateValueScore(priceInEth, card.rarityTyped, player.age, avgPrices[card.rarityTyped] ?? 0),
+        stats: { goals: 0, assists: 0 },
+        fplData,
+      };
+    });
 }
 
 export async function GET(request: Request) {
@@ -157,7 +186,6 @@ export async function GET(request: Request) {
     const forceRefresh = searchParams.get('refresh') === 'true';
     const cursor = searchParams.get('cursor');
 
-    // Load more — always fetch fresh
     if (loadMore) {
       if (!cursor) return NextResponse.json({ players: [], nextCursor: null, hasMore: false });
       console.log('Loading more cards...');
@@ -169,17 +197,16 @@ export async function GET(request: Request) {
       const nextCursor = (batch2 as any)?.pageInfo?.startCursor ?? null;
       const allAuctions = [...nodes1, ...nodes2];
       const avgPrices = computeAvgPrices(allAuctions);
-      const players = mapAuctions(allAuctions, avgPrices).sort((a, b) => b.valueScore - a.valueScore);
+      const players = (await mapAuctions(allAuctions, avgPrices))
+        .sort((a, b) => b.valueScore - a.valueScore);
       return NextResponse.json({ players, nextCursor, hasMore: !!nextCursor });
     }
 
-    // Force refresh — clear cache
     if (forceRefresh) {
       console.log('Force refreshing data...');
       memoryCache = null;
     }
 
-    // Return cache if valid
     const cached = readMemoryCache();
     if (cached) {
       console.log('Returning memory cache');
@@ -203,9 +230,17 @@ export async function GET(request: Request) {
     isFetching = true;
     console.log('Fetching fresh data...');
 
-    const { nodes, nextCursor } = await fetchFreshBatch();
-    const avgPrices = computeAvgPrices(nodes);
-    const players = mapAuctions(nodes, avgPrices).sort((a, b) => b.valueScore - a.valueScore);
+    const batch1 = await fetchAuctions(15);
+    const nodes1 = batch1?.nodes ?? [];
+    const cursor1 = batch1?.pageInfo?.startCursor;
+    const batch2 = cursor1 ? await fetchAuctions(15, cursor1) : { nodes: [], pageInfo: {} };
+    const nodes2 = (batch2 as any)?.nodes ?? [];
+    const nextCursor = (batch2 as any)?.pageInfo?.startCursor ?? null;
+
+    const allAuctions = [...nodes1, ...nodes2];
+    const avgPrices = computeAvgPrices(allAuctions);
+    const players = (await mapAuctions(allAuctions, avgPrices))
+      .sort((a, b) => b.valueScore - a.valueScore);
 
     console.log(`Total cards: ${players.length}`);
     memoryCache = { timestamp: Date.now(), data: players, cursor: nextCursor };

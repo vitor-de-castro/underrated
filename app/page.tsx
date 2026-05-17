@@ -136,8 +136,22 @@ const LEAGUE_CLUBS: Record<string, string[]> = {
     // Scottish
     'celtic fc', 'celtic',
     'rangers fc', 'rangers',
-    // Belgian
-    'club brugge', 'anderlecht', 'rsc anderlecht',
+    // Belgian Pro League
+    'club brugge', 'fc bruges',
+    'rsc anderlecht', 'anderlecht',
+    'krc genk', 'genk',
+    'standard liege', 'standard de liège', 'standard',
+    'kaa gent', 'gent',
+    'royale union saint-gilloise', 'union saint-gilloise', 'union sg', 'royal union saint-gilloise',
+    'oud-heverlee leuven', 'oh leuven',
+    'cercle brugge',
+    'rwdm',
+    'beerschot',
+    'sv zulte waregem', 'zulte waregem',
+    'kv mechelen', 'mechelen',
+    'kv kortrijk', 'kortrijk',
+    'sporting charleroi', 'charleroi',
+    'sv oud-heverlee leuven',
     // Turkish
     'galatasaray', 'fenerbahce', 'fenerbahçe', 'besiktas', 'beşiktaş',
     // Austrian
@@ -187,7 +201,12 @@ function getLeagueForClub(clubName: string): string {
   if (!clubName) return 'other';
   const lower = clubName.toLowerCase().trim();
   for (const [league, clubs] of Object.entries(LEAGUE_CLUBS)) {
-    if (clubs.some(club => lower === club)) {
+    if (clubs.some(club => {
+      if (lower === club) return true;
+      if (club.length > 5 && lower.includes(club)) return true;
+      if (lower.length > 5 && club.includes(lower)) return true;
+      return false;
+    })) {
       return league;
     }
   }
@@ -242,6 +261,7 @@ export default function Home() {
       const response = await fetch(url);
       if (!response.ok) throw new Error('Failed to fetch');
       const data = await response.json();
+
       setPlayers(data.players);
       setFilteredPlayers(data.players);
       setNextCursor(data.nextCursor);

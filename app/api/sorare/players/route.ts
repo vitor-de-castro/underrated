@@ -9,7 +9,6 @@ let memoryCache: { timestamp: number; data: any; cursor: string | null } | null 
 let isFetching = false;
 const CACHE_DURATION = 60 * 60 * 1000;
 
-// Premier League clubs for FPL matching
 const PREMIER_LEAGUE_CLUBS = [
   'arsenal', 'chelsea', 'liverpool', 'manchester city', 'manchester united',
   'tottenham', 'newcastle', 'west ham', 'aston villa', 'brighton',
@@ -142,7 +141,6 @@ async function mapAuctions(auctions: any[], avgPrices: Record<string, number>) {
       const priceInEth = parseFloat(auction.currentPrice) / 1e18;
       const clubName = player.activeClub?.name ?? '';
 
-      // Look up FPL data for Premier League players
       let fplData = null;
       if (isPremierLeagueClub(clubName)) {
         const fplPlayer = lookupFPLPlayer(player.displayName, fplMap);
@@ -158,7 +156,6 @@ async function mapAuctions(auctions: any[], avgPrices: Record<string, number>) {
             status: fplPlayer.status,
             news: fplPlayer.news,
           };
-          console.log(`FPL match: ${player.displayName} -> form=${fplPlayer.form}, xG=${fplPlayer.expected_goals}, status=${fplPlayer.status}`);
         }
       }
 
@@ -186,6 +183,7 @@ export async function GET(request: Request) {
     const forceRefresh = searchParams.get('refresh') === 'true';
     const cursor = searchParams.get('cursor');
 
+    // Load more — 2 batches of 15
     if (loadMore) {
       if (!cursor) return NextResponse.json({ players: [], nextCursor: null, hasMore: false });
       console.log('Loading more cards...');
@@ -230,14 +228,24 @@ export async function GET(request: Request) {
     isFetching = true;
     console.log('Fetching fresh data...');
 
+    // Initial load — 4 batches of 15 = 60 cards
     const batch1 = await fetchAuctions(15);
     const nodes1 = batch1?.nodes ?? [];
     const cursor1 = batch1?.pageInfo?.startCursor;
+
     const batch2 = cursor1 ? await fetchAuctions(15, cursor1) : { nodes: [], pageInfo: {} };
     const nodes2 = (batch2 as any)?.nodes ?? [];
-    const nextCursor = (batch2 as any)?.pageInfo?.startCursor ?? null;
+    const cursor2 = (batch2 as any)?.pageInfo?.startCursor;
 
-    const allAuctions = [...nodes1, ...nodes2];
+    const batch3 = cursor2 ? await fetchAuctions(15, cursor2) : { nodes: [], pageInfo: {} };
+    const nodes3 = (batch3 as any)?.nodes ?? [];
+    const cursor3 = (batch3 as any)?.pageInfo?.startCursor;
+
+    const batch4 = cursor3 ? await fetchAuctions(15, cursor3) : { nodes: [], pageInfo: {} };
+    const nodes4 = (batch4 as any)?.nodes ?? [];
+    const nextCursor = (batch4 as any)?.pageInfo?.startCursor ?? null;
+
+    const allAuctions = [...nodes1, ...nodes2, ...nodes3, ...nodes4];
     const avgPrices = computeAvgPrices(allAuctions);
     const players = (await mapAuctions(allAuctions, avgPrices))
       .sort((a, b) => b.valueScore - a.valueScore);

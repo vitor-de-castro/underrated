@@ -1,7 +1,7 @@
 'use client';
 
+import { useState } from 'react';
 import { CountdownTimer } from '@/components/CountdownTimer';
-import { FPLStats } from '@/components/FPLStats';
 
 interface FPLData {
   form: string;
@@ -32,6 +32,27 @@ interface PlayerCardProps {
   fplData?: FPLData | null;
 }
 
+function getStatusColor(status: string): string {
+  switch (status) {
+    case 'a': return '#10b981';
+    case 'd': return '#f59e0b';
+    case 'i': return '#ef4444';
+    case 's': return '#ef4444';
+    default: return '#6b7280';
+  }
+}
+
+function getStatusLabel(status: string): string {
+  switch (status) {
+    case 'a': return '✅ Available';
+    case 'd': return '⚠️ Doubtful';
+    case 'i': return '🚑 Injured';
+    case 's': return '🟥 Suspended';
+    case 'u': return '❌ Unavailable';
+    default: return '✅ Available';
+  }
+}
+
 export function PlayerCard({
   name,
   club,
@@ -48,6 +69,8 @@ export function PlayerCard({
   averagePrice,
   fplData,
 }: PlayerCardProps) {
+  const [showFPL, setShowFPL] = useState(false);
+
   const getScoreColor = (score: number) => {
     if (score >= 9) return '#10b981';
     if (score >= 8) return '#22c55e';
@@ -87,11 +110,13 @@ export function PlayerCard({
           boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.3)',
           border: '1px solid #374151',
           transition: 'transform 0.2s',
+          display: 'flex',
+          flexDirection: 'column',
         }}
         onMouseEnter={(e) => (e.currentTarget.style.transform = 'scale(1.02)')}
         onMouseLeave={(e) => (e.currentTarget.style.transform = 'scale(1)')}
       >
-        {/* Rarity badge */}
+        {/* Rarity + badges */}
         <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '16px' }}>
           <div style={{
             background: getRarityColor(rarity),
@@ -137,13 +162,11 @@ export function PlayerCard({
         <div style={{
           width: '100%',
           height: '420px',
-          background: 'transparent',
           borderRadius: '12px',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
           marginBottom: '16px',
-          position: 'relative',
           overflow: 'hidden',
         }}>
           {avatarUrl ? (
@@ -175,9 +198,6 @@ export function PlayerCard({
 
         {/* Countdown Timer */}
         <CountdownTimer endTime={endTime ?? null} />
-
-        {/* FPL Stats — only for PL players */}
-        {fplData && <FPLStats fplData={fplData} />}
 
         {/* Value Score */}
         <div style={{
@@ -222,30 +242,133 @@ export function PlayerCard({
           )}
         </div>
 
-        {/* View on Sorare button */}
-        <a
-          href={'https://sorare.com/football/cards/' + slug}
-          target="_blank"
-          rel="noopener noreferrer"
-          style={{
-            display: 'block',
-            width: '100%',
-            background: 'linear-gradient(to right, rgb(39 70 128), rgb(26 41 71))',
-            color: 'white',
-            fontWeight: 'bold',
-            padding: '12px',
-            borderRadius: '8px',
-            cursor: 'pointer',
-            fontSize: '14px',
-            textAlign: 'center',
-            textDecoration: 'none',
-            boxSizing: 'border-box',
-          }}
-          onMouseEnter={(e) => (e.currentTarget.style.background = 'linear-gradient(to right, rgb(49 87 158), rgb(33 52 89))')}
-          onMouseLeave={(e) => (e.currentTarget.style.background = 'linear-gradient(to right, rgb(39 70 128), rgb(26 41 71))')}
-        >
-          View on Sorare
-        </a>
+        {/* FPL Stats — collapsible, above buttons */}
+        {fplData && showFPL && (
+          <div style={{
+            background: 'rgba(55, 0, 179, 0.1)',
+            border: '1px solid rgba(99, 102, 241, 0.3)',
+            borderRadius: '12px',
+            padding: '16px',
+            marginBottom: '16px',
+          }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '12px' }}>
+              <span style={{ color: '#a5b4fc', fontSize: '11px', fontWeight: '700', textTransform: 'uppercase' }}>
+                ⚽ FPL Stats
+              </span>
+              <span style={{ color: getStatusColor(fplData.status), fontSize: '11px', fontWeight: '600' }}>
+                {getStatusLabel(fplData.status)}
+              </span>
+            </div>
+
+            {fplData.news && fplData.status !== 'a' && (
+              <div style={{
+                color: '#f59e0b',
+                fontSize: '11px',
+                marginBottom: '12px',
+                padding: '6px 8px',
+                background: 'rgba(245, 158, 11, 0.1)',
+                borderRadius: '6px',
+              }}>
+                {fplData.news}
+              </div>
+            )}
+
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '8px' }}>
+              {[
+                { label: 'Form', value: fplData.form, highlight: parseFloat(fplData.form) >= 6 },
+                { label: 'xG', value: parseFloat(fplData.expectedGoals).toFixed(1) },
+                { label: 'xA', value: parseFloat(fplData.expectedAssists).toFixed(1) },
+                { label: 'Goals', value: fplData.goalsScored.toString() },
+                { label: 'Assists', value: fplData.assists.toString() },
+                { label: 'Minutes', value: fplData.minutes.toString() },
+              ].map((stat) => (
+                <div key={stat.label} style={{
+                  background: 'rgba(0,0,0,0.3)',
+                  borderRadius: '8px',
+                  padding: '8px',
+                  textAlign: 'center',
+                }}>
+                  <div style={{ color: '#9ca3af', fontSize: '10px', textTransform: 'uppercase', marginBottom: '2px' }}>
+                    {stat.label}
+                  </div>
+                  <div style={{ color: stat.highlight ? '#10b981' : 'white', fontSize: '1rem', fontWeight: 'bold' }}>
+                    {stat.value}
+                  </div>
+                </div>
+              ))}
+            </div>
+            <div style={{ color: '#6b7280', fontSize: '10px', textAlign: 'right', marginTop: '8px' }}>
+              FPL Season 2024/25
+            </div>
+          </div>
+        )}
+
+        {/* Bottom buttons — always the last element */}
+        {fplData ? (
+          <div style={{ display: 'flex', gap: '8px' }}>
+            <a
+              href={'https://sorare.com/football/cards/' + slug}
+              target="_blank"
+              rel="noopener noreferrer"
+              style={{
+                flex: 1,
+                background: 'linear-gradient(to right, rgb(39 70 128), rgb(26 41 71))',
+                color: 'white',
+                fontWeight: 'bold',
+                padding: '12px',
+                borderRadius: '8px',
+                fontSize: '13px',
+                textAlign: 'center',
+                textDecoration: 'none',
+                boxSizing: 'border-box',
+              }}
+              onMouseEnter={(e) => (e.currentTarget.style.background = 'linear-gradient(to right, rgb(49 87 158), rgb(33 52 89))')}
+              onMouseLeave={(e) => (e.currentTarget.style.background = 'linear-gradient(to right, rgb(39 70 128), rgb(26 41 71))')}
+            >
+              View on Sorare
+            </a>
+            <button
+              onClick={() => setShowFPL(!showFPL)}
+              style={{
+                flex: 0,
+                whiteSpace: 'nowrap',
+                padding: '12px 14px',
+                background: showFPL ? 'rgba(99, 102, 241, 0.3)' : 'rgba(99, 102, 241, 0.1)',
+                border: '1px solid rgba(99, 102, 241, 0.5)',
+                borderRadius: '8px',
+                color: '#a5b4fc',
+                fontSize: '13px',
+                fontWeight: '600',
+                cursor: 'pointer',
+              }}
+            >
+              {showFPL ? '▲ FPL' : '▼ FPL'}
+            </button>
+          </div>
+        ) : (
+          <a
+            href={'https://sorare.com/football/cards/' + slug}
+            target="_blank"
+            rel="noopener noreferrer"
+            style={{
+              display: 'block',
+              width: '100%',
+              background: 'linear-gradient(to right, rgb(39 70 128), rgb(26 41 71))',
+              color: 'white',
+              fontWeight: 'bold',
+              padding: '12px',
+              borderRadius: '8px',
+              fontSize: '14px',
+              textAlign: 'center',
+              textDecoration: 'none',
+              boxSizing: 'border-box',
+            }}
+            onMouseEnter={(e) => (e.currentTarget.style.background = 'linear-gradient(to right, rgb(49 87 158), rgb(33 52 89))')}
+            onMouseLeave={(e) => (e.currentTarget.style.background = 'linear-gradient(to right, rgb(39 70 128), rgb(26 41 71))')}
+          >
+            View on Sorare
+          </a>
+        )}
       </div>
     </div>
   );

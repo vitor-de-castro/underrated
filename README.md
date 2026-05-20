@@ -15,7 +15,7 @@ Underrated connects to the Sorare live auction market in real time and helps use
 ## Features
 
 ### 🔴 Live Auction Data
-- Fetches 30 live auctions in real time via the Sorare GraphQL API
+- Fetches 60 live auctions in real time via the Sorare GraphQL API
 - Load more button to browse additional cards
 - Refresh button with "last updated X minutes ago" timestamp
 - 1-hour intelligent caching to avoid API rate limits

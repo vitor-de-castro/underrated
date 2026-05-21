@@ -58,7 +58,7 @@ export function AIAnalyst({ players }: AIAnalystProps) {
         background: 'linear-gradient(to bottom, #1a1a2e, #16213e)',
         border: '1px solid #374151',
         borderRadius: '16px',
-        padding: '20px 24px',
+        padding: '10px 24px',
       }}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '16px', marginBottom: '24px' }}>
           <div>

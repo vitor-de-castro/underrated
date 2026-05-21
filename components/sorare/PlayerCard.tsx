@@ -30,6 +30,8 @@ interface PlayerCardProps {
   endTime?: string | null;
   averagePrice?: number | null;
   fplData?: FPLData | null;
+  priceTrend?: 'up' | 'down' | 'stable' | null;
+  priceChangePercent?: number | null;
 }
 
 function getStatusColor(status: string): string {
@@ -68,6 +70,8 @@ export function PlayerCard({
   endTime,
   averagePrice,
   fplData,
+  priceTrend,
+  priceChangePercent,
 }: PlayerCardProps) {
   const [showFPL, setShowFPL] = useState(false);
 
@@ -98,7 +102,16 @@ export function PlayerCard({
     return { label: 'Average price', color: '#9ca3af' };
   };
 
+  const getTrendDisplay = () => {
+    if (!priceTrend || priceTrend === 'stable' || priceChangePercent === null) return null;
+    const abs = Math.abs(priceChangePercent).toFixed(1);
+    if (priceTrend === 'up') return { label: `↑ ${abs}%`, color: '#ef4444' }; // price up = more expensive
+    if (priceTrend === 'down') return { label: `↓ ${abs}%`, color: '#10b981' }; // price down = cheaper = good
+    return null;
+  };
+
   const priceContext = getPriceContext();
+  const trendDisplay = getTrendDisplay();
 
   return (
     <div style={{ maxWidth: '380px', margin: '0 auto', width: '100%' }}>
@@ -226,11 +239,18 @@ export function PlayerCard({
         }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4px' }}>
             <div style={{ color: '#9ca3af', fontSize: '11px' }}>Current Bid</div>
-            {priceContext && (
-              <div style={{ color: priceContext.color, fontSize: '11px', fontWeight: '600' }}>
-                {priceContext.label}
-              </div>
-            )}
+            <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+              {trendDisplay && (
+                <div style={{ color: trendDisplay.color, fontSize: '11px', fontWeight: '700' }}>
+                  {trendDisplay.label}
+                </div>
+              )}
+              {priceContext && (
+                <div style={{ color: priceContext.color, fontSize: '11px', fontWeight: '600' }}>
+                  {priceContext.label}
+                </div>
+              )}
+            </div>
           </div>
           <div style={{ color: '#10b981', fontSize: '28px', fontWeight: '900' }}>
             {String.fromCharCode(926)}{price.toFixed(4)}
@@ -242,7 +262,7 @@ export function PlayerCard({
           )}
         </div>
 
-        {/* FPL Stats — collapsible, above buttons */}
+        {/* FPL Stats — collapsible */}
         {fplData && showFPL && (
           <div style={{
             background: 'rgba(55, 0, 179, 0.1)',
@@ -303,7 +323,7 @@ export function PlayerCard({
           </div>
         )}
 
-        {/* Bottom buttons — always the last element */}
+        {/* Bottom buttons */}
         {fplData ? (
           <div style={{ display: 'flex', gap: '8px' }}>
             <a

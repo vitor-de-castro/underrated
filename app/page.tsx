@@ -553,6 +553,8 @@ export default function Home() {
                   endTime={player.endTime}
                   averagePrice={averagePrices[player.rarity] ?? null}
                   fplData={player.fplData ?? null}
+                  priceTrend={player.priceTrend ?? null}
+                  priceChangePercent={player.priceChangePercent ?? null}
                 />
               ))}
             </div>

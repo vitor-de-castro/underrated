@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { getFPLData, lookupFPLPlayer } from '@/lib/fpl-service';
+import { savePriceSnapshots, getPriceTrends } from '@/lib/price-trend-service';
 
 const SORARE_GRAPHQL_URL = 'https://api.sorare.com/federation/graphql';
 const SORARE_JWT_TOKEN = process.env.SORARE_JWT_TOKEN;
@@ -133,47 +134,62 @@ function computeAvgPrices(auctions: any[]): Record<string, number> {
 async function mapAuctions(auctions: any[], avgPrices: Record<string, number>) {
   const fplMap = await getFPLData();
 
-  return auctions
-    .filter((auction: any) => auction.anyCards?.[0]?.player?.displayName)
-    .map((auction: any) => {
-      const card = auction.anyCards[0];
-      const player = card.player;
-      const priceInEth = parseFloat(auction.currentPrice) / 1e18;
-      const clubName = player.activeClub?.name ?? '';
+  const validAuctions = auctions.filter((auction: any) => auction.anyCards?.[0]?.player?.displayName);
 
-      let fplData = null;
-      if (isPremierLeagueClub(clubName)) {
-        const fplPlayer = lookupFPLPlayer(player.displayName, fplMap);
-        if (fplPlayer) {
-          fplData = {
-            form: fplPlayer.form,
-            totalPoints: fplPlayer.total_points,
-            minutes: fplPlayer.minutes,
-            goalsScored: fplPlayer.goals_scored,
-            assists: fplPlayer.assists,
-            expectedGoals: fplPlayer.expected_goals,
-            expectedAssists: fplPlayer.expected_assists,
-            status: fplPlayer.status,
-            news: fplPlayer.news,
-          };
-        }
+  // Save price snapshots to Redis
+  const snapshots = validAuctions.map((auction: any) => ({
+    slug: auction.anyCards[0].slug,
+    price: parseFloat(auction.currentPrice) / 1e18,
+  }));
+  await savePriceSnapshots(snapshots);
+
+  // Get price trends for all cards
+  const slugs = snapshots.map(s => s.slug);
+  const trendsMap = await getPriceTrends(slugs);
+
+  return validAuctions.map((auction: any) => {
+    const card = auction.anyCards[0];
+    const player = card.player;
+    const priceInEth = parseFloat(auction.currentPrice) / 1e18;
+    const clubName = player.activeClub?.name ?? '';
+
+    let fplData = null;
+    if (isPremierLeagueClub(clubName)) {
+      const fplPlayer = lookupFPLPlayer(player.displayName, fplMap);
+      if (fplPlayer) {
+        fplData = {
+          form: fplPlayer.form,
+          totalPoints: fplPlayer.total_points,
+          minutes: fplPlayer.minutes,
+          goalsScored: fplPlayer.goals_scored,
+          assists: fplPlayer.assists,
+          expectedGoals: fplPlayer.expected_goals,
+          expectedAssists: fplPlayer.expected_assists,
+          status: fplPlayer.status,
+          news: fplPlayer.news,
+        };
       }
+    }
 
-      return {
-        slug: card.slug,
-        displayName: player.displayName,
-        position: player.anyPositions?.[0] ?? 'Unknown',
-        age: player.age,
-        avatarUrl: card.pictureUrl,
-        club: { name: clubName || 'Unknown Club' },
-        rarity: card.rarityTyped,
-        price: priceInEth,
-        endTime: auction.endDate ?? null,
-        valueScore: calculateValueScore(priceInEth, card.rarityTyped, player.age, avgPrices[card.rarityTyped] ?? 0),
-        stats: { goals: 0, assists: 0 },
-        fplData,
-      };
-    });
+    const trend = trendsMap.get(card.slug) ?? { trend: null, changePercent: null };
+
+    return {
+      slug: card.slug,
+      displayName: player.displayName,
+      position: player.anyPositions?.[0] ?? 'Unknown',
+      age: player.age,
+      avatarUrl: card.pictureUrl,
+      club: { name: clubName || 'Unknown Club' },
+      rarity: card.rarityTyped,
+      price: priceInEth,
+      endTime: auction.endDate ?? null,
+      valueScore: calculateValueScore(priceInEth, card.rarityTyped, player.age, avgPrices[card.rarityTyped] ?? 0),
+      stats: { goals: 0, assists: 0 },
+      fplData,
+      priceTrend: trend.trend,
+      priceChangePercent: trend.changePercent,
+    };
+  });
 }
 
 export async function GET(request: Request) {
@@ -183,7 +199,6 @@ export async function GET(request: Request) {
     const forceRefresh = searchParams.get('refresh') === 'true';
     const cursor = searchParams.get('cursor');
 
-    // Load more — 2 batches of 15
     if (loadMore) {
       if (!cursor) return NextResponse.json({ players: [], nextCursor: null, hasMore: false });
       console.log('Loading more cards...');
@@ -228,7 +243,6 @@ export async function GET(request: Request) {
     isFetching = true;
     console.log('Fetching fresh data...');
 
-    // Initial load — 4 batches of 15 = 60 cards
     const batch1 = await fetchAuctions(15);
     const nodes1 = batch1?.nodes ?? [];
     const cursor1 = batch1?.pageInfo?.startCursor;

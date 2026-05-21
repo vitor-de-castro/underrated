@@ -318,7 +318,7 @@ export function PlayerCard({
               ))}
             </div>
             <div style={{ color: '#6b7280', fontSize: '10px', textAlign: 'right', marginTop: '8px' }}>
-              FPL Season 2024/25
+              FPL Season 2025/26
             </div>
           </div>
         )}

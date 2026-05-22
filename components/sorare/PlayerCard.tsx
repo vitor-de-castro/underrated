@@ -105,8 +105,8 @@ export function PlayerCard({
   const getTrendDisplay = () => {
     if (!priceTrend || priceTrend === 'stable' || priceChangePercent === null) return null;
     const abs = Math.abs(priceChangePercent).toFixed(1);
-    if (priceTrend === 'up') return { label: `↑ ${abs}%`, color: '#ef4444' }; // price up = more expensive
-    if (priceTrend === 'down') return { label: `↓ ${abs}%`, color: '#10b981' }; // price down = cheaper = good
+    if (priceTrend === 'up') return { label: `↑ Price up ${abs}% (24h)`, color: '#ef4444' };
+    if (priceTrend === 'down') return { label: `↓ Price down ${abs}% (24h)`, color: '#10b981' };
     return null;
   };
 
@@ -239,27 +239,27 @@ export function PlayerCard({
         }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4px' }}>
             <div style={{ color: '#9ca3af', fontSize: '11px' }}>Current Bid</div>
-            <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
-              {trendDisplay && (
-                <div style={{ color: trendDisplay.color, fontSize: '11px', fontWeight: '700' }}>
-                  {trendDisplay.label}
-                </div>
-              )}
-              {priceContext && (
-                <div style={{ color: priceContext.color, fontSize: '11px', fontWeight: '600' }}>
-                  {priceContext.label}
-                </div>
-              )}
-            </div>
+            {priceContext && (
+              <div style={{ color: priceContext.color, fontSize: '11px', fontWeight: '600' }}>
+                {priceContext.label}
+              </div>
+            )}
           </div>
           <div style={{ color: '#10b981', fontSize: '28px', fontWeight: '900' }}>
             {String.fromCharCode(926)}{price.toFixed(4)}
           </div>
-          {averagePrice && averagePrice > 0 && (
-            <div style={{ color: '#6b7280', fontSize: '11px', marginTop: '4px' }}>
-              Avg for {rarity.replace('_', ' ')}: {String.fromCharCode(926)}{averagePrice.toFixed(4)}
-            </div>
-          )}
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '4px' }}>
+            {averagePrice && averagePrice > 0 ? (
+              <div style={{ color: '#6b7280', fontSize: '11px' }}>
+                Avg for {rarity.replace('_', ' ')}: {String.fromCharCode(926)}{averagePrice.toFixed(4)}
+              </div>
+            ) : <div />}
+            {trendDisplay && (
+              <div style={{ color: trendDisplay.color, fontSize: '11px', fontWeight: '600' }}>
+                {trendDisplay.label}
+              </div>
+            )}
+          </div>
         </div>
 
         {/* FPL Stats — collapsible */}

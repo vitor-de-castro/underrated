@@ -124,43 +124,25 @@ const LEAGUE_CLUBS: Record<string, string[]> = {
     'angers sco', 'angers',
   ],
   other_european: [
-    // Primeira Liga
     'sporting cp', 'sporting clube de portugal',
     'sl benfica', 'benfica',
     'fc porto', 'porto',
     'sc braga', 'braga',
-    // Eredivisie
     'ajax', 'afc ajax',
     'psv eindhoven', 'psv',
     'feyenoord',
     'az alkmaar', 'az',
-    // Scottish
     'celtic fc', 'celtic',
     'rangers fc', 'rangers',
-    // Belgian Pro League
-    'club brugge', 'fc bruges',
+    'club brugge', 'club brugge kv',
     'rsc anderlecht', 'anderlecht',
     'krc genk', 'genk',
     'standard liege', 'standard de liège', 'standard',
     'kaa gent', 'gent',
-    'royale union saint-gilloise', 'union saint-gilloise', 'union sg', 'royal union saint-gilloise',
-    'oud-heverlee leuven', 'oh leuven',
-    'cercle brugge',
-    'rwdm',
-    'beerschot',
-    'sv zulte waregem', 'zulte waregem',
-    'kv mechelen', 'mechelen',
-    'kv kortrijk', 'kortrijk',
-    'sporting charleroi', 'charleroi',
-    'sv oud-heverlee leuven',
-    // Turkish
+    'royal union saint-gilloise', 'union saint-gilloise',
     'galatasaray', 'fenerbahce', 'fenerbahçe', 'besiktas', 'beşiktaş',
-    // Austrian
     'fc red bull salzburg', 'rb salzburg', 'salzburg',
-    // Ukrainian
     'shakhtar donetsk', 'shakhtar',
-    // Champions League regulars
-    'ajax', 'benfica', 'porto',
   ],
   mls: [
     'inter miami cf', 'inter miami',
@@ -262,7 +244,6 @@ export default function Home() {
       const response = await fetch(url);
       if (!response.ok) throw new Error('Failed to fetch');
       const data = await response.json();
-
       setPlayers(data.players);
       setFilteredPlayers(data.players);
       setNextCursor(data.nextCursor);
@@ -408,17 +389,24 @@ export default function Home() {
             gap: '12px',
             flexWrap: 'wrap',
           }}>
-            <span style={{
-              padding: '4px 12px',
-              background: 'rgb(179 192 233 / 20%)',
-              border: '1px solid rgb(188 188 188 / 50%)',
-              borderRadius: '9999px',
-              color: '#d8d8d8',
-              fontSize: '0.875rem',
-              fontWeight: '600',
-            }}>
-              Sorare Mode
-            </span>
+            {hasMore && (
+              <button
+                onClick={loadMore}
+                disabled={loadingMore}
+                style={{
+                  padding: '4px 16px',
+                  background: 'rgb(179 192 233 / 20%)',
+                  border: '1px solid rgb(188 188 188 / 50%)',
+                  borderRadius: '9999px',
+                  color: '#d8d8d8',
+                  fontSize: '0.875rem',
+                  fontWeight: '600',
+                  cursor: loadingMore ? 'not-allowed' : 'pointer',
+                }}
+              >
+                {loadingMore ? 'Loading...' : '+ Load More Cards'}
+              </button>
+            )}
             <span style={{ color: '#4b5563' }}>•</span>
             <span style={{ color: '#6b7280', fontSize: '0.875rem' }}>
               Real-time market data
@@ -598,7 +586,7 @@ export default function Home() {
           </div>
         )}
       </div>
-        <BackToTop />
+      <BackToTop />
     </main>
   );
 }

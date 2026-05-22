@@ -5,6 +5,7 @@ import { PlayerCard } from '@/components/sorare/PlayerCard';
 import { Filters } from '@/components/Filters';
 import { AIAnalyst } from '@/components/AIAnalyst';
 import { MarketStats } from '@/components/MarketStats';
+import { BackToTop } from '@/components/BackToTop';
 
 const LEAGUE_CLUBS: Record<string, string[]> = {
   premier_league: [
@@ -597,6 +598,7 @@ export default function Home() {
           </div>
         )}
       </div>
+        <BackToTop />
     </main>
   );
 }

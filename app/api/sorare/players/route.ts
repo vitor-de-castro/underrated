@@ -76,7 +76,8 @@ function calculateValueScore(
   priceInEth: number,
   rarity: string,
   age: number,
-  avgPriceForRarity: number
+  avgPriceForRarity: number,
+  fplData?: { form: string; status: string } | null
 ): number {
   if (priceInEth === 0) return 0;
 
@@ -104,7 +105,22 @@ function calculateValueScore(
   };
   const rBonus = rarityBonus[rarity] ?? 0;
 
-  const score = priceContextScore + ageBonus + rBonus;
+  // FPL boost/penalty for PL players
+  let fplBonus = 0;
+  if (fplData) {
+    // Injury/availability penalty
+    if (fplData.status === 'i' || fplData.status === 'u') fplBonus -= 1.0;
+    else if (fplData.status === 'd') fplBonus -= 0.5;
+    else if (fplData.status === 's') fplBonus -= 0.7;
+
+    // Form bonus/penalty
+    const form = parseFloat(fplData.form);
+    if (form >= 8) fplBonus += 0.5;
+    else if (form >= 6) fplBonus += 0.3;
+    else if (form <= 2) fplBonus -= 0.2;
+  }
+
+  const score = priceContextScore + ageBonus + rBonus + fplBonus;
   return Math.min(Math.max(parseFloat(score.toFixed(1)), 0), 10);
 }
 
@@ -183,7 +199,13 @@ async function mapAuctions(auctions: any[], avgPrices: Record<string, number>) {
       rarity: card.rarityTyped,
       price: priceInEth,
       endTime: auction.endDate ?? null,
-      valueScore: calculateValueScore(priceInEth, card.rarityTyped, player.age, avgPrices[card.rarityTyped] ?? 0),
+      valueScore: calculateValueScore(
+        priceInEth,
+        card.rarityTyped,
+        player.age,
+        avgPrices[card.rarityTyped] ?? 0,
+        fplData ? { form: fplData.form, status: fplData.status } : null
+      ),
       stats: { goals: 0, assists: 0 },
       fplData,
       priceTrend: trend.trend,

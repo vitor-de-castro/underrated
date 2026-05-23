@@ -4,6 +4,7 @@ import { useState } from 'react';
 
 interface Player {
   displayName: string;
+  slug: string;
   club: { name: string };
   age: number;
   rarity: string;
@@ -46,6 +47,17 @@ export function AIAnalyst({ players }: AIAnalystProps) {
     } finally {
       setLoading(false);
     }
+  }
+
+  // Match pick name to player slug
+  function getSlugForPick(pickName: string): string | null {
+    const lower = pickName.toLowerCase();
+    const match = players.find(p =>
+      p.displayName.toLowerCase() === lower ||
+      p.displayName.toLowerCase().includes(lower) ||
+      lower.includes(p.displayName.toLowerCase())
+    );
+    return match?.slug ?? null;
   }
 
   return (
@@ -111,41 +123,71 @@ export function AIAnalyst({ players }: AIAnalystProps) {
 
         {!loading && picks.length > 0 && (
           <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-            {picks.map((pick, i) => (
-              <div key={i} style={{
-                background: 'rgba(0,0,0,0.3)',
-                border: '1px solid #374151',
-                borderRadius: '12px',
-                padding: '20px',
-                display: 'flex',
-                gap: '16px',
-                alignItems: 'flex-start',
-              }}>
-                <div style={{
-                  background: i === 0 ? '#fbbf24' : i === 1 ? '#9ca3af' : i === 2 ? '#cd7c2f' : '#374151',
-                  color: i < 3 ? '#000' : 'white',
-                  width: '32px',
-                  height: '32px',
-                  borderRadius: '50%',
+            {picks.map((pick, i) => {
+              const slug = getSlugForPick(pick.name);
+              return (
+                <div key={i} style={{
+                  background: 'rgba(0,0,0,0.3)',
+                  border: '1px solid #374151',
+                  borderRadius: '12px',
+                  padding: '20px',
                   display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  fontWeight: 'bold',
-                  fontSize: '0.9rem',
-                  flexShrink: 0,
+                  gap: '16px',
+                  alignItems: 'flex-start',
                 }}>
-                  {i + 1}
-                </div>
-                <div>
-                  <div style={{ color: 'white', fontWeight: 'bold', fontSize: '1rem', marginBottom: '6px' }}>
-                    {pick.name}
+                  <div style={{
+                    background: i === 0 ? '#fbbf24' : i === 1 ? '#9ca3af' : i === 2 ? '#cd7c2f' : '#374151',
+                    color: i < 3 ? '#000' : 'white',
+                    width: '32px',
+                    height: '32px',
+                    borderRadius: '50%',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    fontWeight: 'bold',
+                    fontSize: '0.9rem',
+                    flexShrink: 0,
+                  }}>
+                    {i + 1}
                   </div>
-                  <div style={{ color: '#9ca3af', fontSize: '0.875rem', lineHeight: '1.6' }}>
-                    {pick.reason}
+                  <div style={{ flex: 1 }}>
+                    <div style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '12px',
+                      marginBottom: '6px',
+                      flexWrap: 'wrap',
+                    }}>
+                      <div style={{ color: 'white', fontWeight: 'bold', fontSize: '1rem' }}>
+                        {pick.name}
+                      </div>
+                      {slug && (
+                        <a
+                          href={`https://sorare.com/football/cards/${slug}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          style={{
+                            padding: '3px 10px',
+                            background: 'linear-gradient(to right, rgb(39 70 128), rgb(26 41 71))',
+                            color: 'white',
+                            borderRadius: '6px',
+                            fontSize: '11px',
+                            fontWeight: '600',
+                            textDecoration: 'none',
+                            whiteSpace: 'nowrap',
+                          }}
+                        >
+                          View on Sorare →
+                        </a>
+                      )}
+                    </div>
+                    <div style={{ color: '#9ca3af', fontSize: '0.875rem', lineHeight: '1.6' }}>
+                      {pick.reason}
+                    </div>
                   </div>
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         )}
 

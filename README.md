@@ -1,4 +1,4 @@
-# UNDERRATED
+# UNDERRATED 🎯
 
 **Real-time Sorare football card analytics platform for discovering undervalued cards in live auctions.**
 
@@ -8,7 +8,7 @@
 
 ## What it does
 
-Underrated connects to the Sorare live auction market in real time and helps users identify which football cards are undervalued based on price context, rarity, and auction urgency. Instead of manually browsing Sorare, users get an instant overview of the market with filters, sorting, and AI-powered analysis.
+Underrated connects to the Sorare live auction market in real time and helps users identify which football cards are undervalued based on price context, rarity, player age, and for Premier League players, live FPL performance data. Instead of manually browsing Sorare, users get an instant overview of the market with filters, sorting, AI-powered analysis, and price trend tracking.
 
 ---
 
@@ -29,6 +29,11 @@ Underrated connects to the Sorare live auction market in real time and helps use
 - Shows each card as X% above or below average for its rarity
 - Value score factors in price vs average — cheaper than average scores higher
 
+### 📈 Price Trend Tracking
+- Stores hourly price snapshots in Upstash Redis
+- Shows "↑ Price up X% (24h)" or "↓ Price down X% (24h)" on each card
+- Up to 24 hours of price history per card
+
 ### 📊 Market Stats Bar
 - Cards loaded, average bid price, cheapest card, ending soon count
 - Average value score across all cards
@@ -39,14 +44,26 @@ Underrated connects to the Sorare live auction market in real time and helps use
 - Powered by OpenAI GPT-4o-mini
 - Analyses all live auctions with full price context and auction urgency
 - Identifies top 5 undervalued picks with detailed reasoning
-- Considers age, club context, rarity vs price, position scarcity, and time remaining
+- Direct "View on Sorare" link for each pick
+
+### 🏴󠁧󠁢󠁥󠁮󠁧󠁿 FPL Integration (Premier League players)
+- Form, xG, xA, goals, assists, minutes — collapsible per card
+- Injury and availability status with news
+- FPL data influences the value score:
+  - Injured/unavailable → -1.0
+  - Suspended → -0.7
+  - Doubtful → -0.5
+  - Form 8+ → +0.5
+  - Form 6+ → +0.3
+  - Form below 2 → -0.2
 
 ### 🎯 Filters
-- Filter by league (Premier League, La Liga, Bundesliga, Serie A, Ligue 1, MLS, All European)
+- Filter by league (Premier League, La Liga, Bundesliga, Serie A, Ligue 1, Other European, MLS, All European)
 - Filter by position (Forward, Midfielder, Defender, Goalkeeper)
 - Filter by rarity (Limited, Rare, Super Rare, Unique)
 - Filter by max price (ETH)
 - Filter by minimum value score
+- Collapsible filter panel — clean on mobile
 - Clear all filters button
 
 ### 🔃 Sort Options
@@ -60,11 +77,12 @@ Underrated connects to the Sorare live auction market in real time and helps use
 ## Tech Stack
 
 - **Framework:** Next.js 16 + TypeScript
-- **UI:** React, Tailwind CSS
+- **UI:** React
 - **API:** Sorare GraphQL API (authenticated JWT)
 - **AI:** OpenAI API (GPT-4o-mini)
+- **Database:** Upstash Redis (price trend snapshots)
 - **Deployment:** Vercel
-- **Domain:** Namecheap → underrated.live
+- **Domain:** underrated.live
 
 ---
 
@@ -72,31 +90,36 @@ Underrated connects to the Sorare live auction market in real time and helps use
 
 ```
 app/
-  page.tsx                    — Main page with filters, sorting, load more
+  page.tsx                          — Main page with filters, sorting, load more
   api/
     sorare/
-      players/route.ts        — Fetches live auctions, calculates value scores
-    ai-analyst/route.ts       — OpenAI market analysis endpoint
+      players/route.ts              — Fetches live auctions, calculates value scores, FPL matching
+    ai-analyst/route.ts             — OpenAI market analysis endpoint
 components/
   sorare/
-    PlayerCard.tsx            — Individual card with countdown, price context
-  AIAnalyst.tsx               — AI analyst UI with picks
-  Filters.tsx                 — All filter dropdowns including league
-  MarketStats.tsx             — Market stats bar
-  CountdownTimer.tsx          — Live countdown timer
+    PlayerCard.tsx                  — Individual card with countdown, price context, FPL stats
+  AIAnalyst.tsx                     — AI analyst UI with picks and Sorare links
+  Filters.tsx                       — Collapsible filter panel
+  MarketStats.tsx                   — Market stats bar
+  CountdownTimer.tsx                — Live countdown timer
+  BackToTop.tsx                     — Fixed back to top button
+lib/
+  fpl-service.ts                    — FPL data fetching and caching (24h)
+  price-trend-service.ts            — Upstash Redis price snapshot storage and trend calculation
 ```
 
 ---
 
-## Value Score
+## Value Score Algorithm
 
-The value score (0-10) measures how undervalued a card is based on:
+The value score (0-10) measures how undervalued a card is:
 
-- **Price context (dominant factor)** — how the current bid compares to the average price for that rarity across all loaded cards. A card 50%+ below average scores 8.5, a card at average scores 5.5, an overpriced card scores 1.5
-- **Age bonus** — under 21 gets +0.5, under 24 gets +0.3, under 27 gets +0.1. Younger players have more upside
-- **Rarity bonus (tiebreaker)** — Unique +0.5, Super Rare +0.3, Rare +0.1, Limited +0. Scarcity within the same price context adds marginal value
+- **Price context (dominant)** — ratio of current price to rarity average. 50%+ below average → 8.5, at average → 5.5, 100%+ above average → 1.5
+- **Age bonus** — under 21 → +0.5, under 24 → +0.3, under 27 → +0.1
+- **Rarity bonus (tiebreaker)** — Unique +0.5, Super Rare +0.3, Rare +0.1, Limited +0
+- **FPL bonus/penalty (PL players only)** — based on injury status and current form
 
-A 10/10 requires a card to be significantly below average price, young, and scarce. An average-priced card scores around 5.5.
+---
 
 ## JWT Token Renewal
 
@@ -115,9 +138,10 @@ SORARE_PASSWORD=
 VERCEL_TOKEN=
 VERCEL_PROJECT_ID=
 OPENAI_API_KEY=
+FOOTBALL_DATA_API_KEY=
+KV_REST_API_URL=
+KV_REST_API_TOKEN=
 ```
-
-The script fetches a new token from Sorare, updates Vercel environment variables automatically, and updates `.env.local`.
 
 ---
 

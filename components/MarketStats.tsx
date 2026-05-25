@@ -7,6 +7,7 @@ interface Player {
   rarity: string;
   endTime: string | null;
   valueScore: number;
+  priceTrend?: 'up' | 'down' | 'stable' | null;
 }
 
 interface MarketStatsProps {
@@ -42,7 +43,10 @@ export function MarketStats({ players }: MarketStatsProps) {
       ? players.reduce((a, b) => a + b.valueScore, 0) / players.length
       : 0;
 
-    return { avgPrice, cheapest, endingSoon, mostCommonRarity, avgScore, total: players.length };
+    const trendingUp = players.filter(p => p.priceTrend === 'up').length;
+    const trendingDown = players.filter(p => p.priceTrend === 'down').length;
+
+    return { avgPrice, cheapest, endingSoon, mostCommonRarity, avgScore, total: players.length, trendingUp, trendingDown };
   }, [players]);
 
   if (!stats) return null;
@@ -81,6 +85,18 @@ export function MarketStats({ players }: MarketStatsProps) {
       value: stats.mostCommonRarity.replace('_', ' '),
       icon: '🏷️',
     },
+    {
+      label: 'Price Trending ↑',
+      value: stats.trendingUp.toString(),
+      icon: '📈',
+      color: stats.trendingUp > 0 ? '#ef4444' : '#9ca3af',
+    },
+    {
+      label: 'Price Trending ↓',
+      value: stats.trendingDown.toString(),
+      icon: '📉',
+      color: stats.trendingDown > 0 ? '#10b981' : '#9ca3af',
+    },
   ];
 
   return (
@@ -89,28 +105,44 @@ export function MarketStats({ players }: MarketStatsProps) {
       margin: '0 auto 24px auto',
       padding: '0 16px',
     }}>
+      <style>{`
+        .market-stats-inner {
+          display: flex;
+          flex-direction: row;
+          gap: 24px;
+          overflow-x: auto;
+          padding-bottom: 4px;
+          -webkit-overflow-scrolling: touch;
+        }
+        .market-stats-item {
+          min-width: 110px;
+          flex-shrink: 0;
+        }
+        @media (min-width: 768px) {
+          .market-stats-inner {
+            display: grid !important;
+            grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+            overflow-x: visible;
+            padding-bottom: 0;
+          }
+          .market-stats-item {
+            min-width: unset;
+            flex-shrink: unset;
+          }
+        }
+      `}</style>
       <div style={{
         background: '#1a1a1a',
         border: '1px solid #374151',
         borderRadius: '16px',
         padding: '20px 24px',
       }}>
-        <div style={{
-          display: 'flex',
-          flexDirection: 'row',
-          gap: '24px',
-          overflowX: 'auto',
-          paddingBottom: '4px',
-          WebkitOverflowScrolling: 'touch' as any,
-          justifyContent: 'space-between',
-        }}>
+        <div className="market-stats-inner">
           {statItems.map((item, i) => (
-            <div key={i} style={{
+            <div key={i} className="market-stats-item" style={{
               display: 'flex',
               flexDirection: 'column',
               gap: '4px',
-              minWidth: '120px',
-              flexShrink: 0,
             }}>
               <div style={{
                 color: '#a2a2a2',

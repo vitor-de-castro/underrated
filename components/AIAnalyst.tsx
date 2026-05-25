@@ -49,15 +49,13 @@ export function AIAnalyst({ players }: AIAnalystProps) {
     }
   }
 
-  // Match pick name to player slug
-  function getSlugForPick(pickName: string): string | null {
+  function getPlayerData(pickName: string): Player | null {
     const lower = pickName.toLowerCase();
-    const match = players.find(p =>
+    return players.find(p =>
       p.displayName.toLowerCase() === lower ||
       p.displayName.toLowerCase().includes(lower) ||
       lower.includes(p.displayName.toLowerCase())
-    );
-    return match?.slug ?? null;
+    ) ?? null;
   }
 
   return (
@@ -124,7 +122,10 @@ export function AIAnalyst({ players }: AIAnalystProps) {
         {!loading && picks.length > 0 && (
           <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
             {picks.map((pick, i) => {
-              const slug = getSlugForPick(pick.name);
+              const playerData = getPlayerData(pick.name);
+              const slug = playerData?.slug ?? null;
+              const isHot = playerData ? playerData.valueScore >= 7 : false;
+
               return (
                 <div key={i} style={{
                   background: 'rgba(0,0,0,0.3)',
@@ -154,13 +155,25 @@ export function AIAnalyst({ players }: AIAnalystProps) {
                     <div style={{
                       display: 'flex',
                       alignItems: 'center',
-                      gap: '12px',
+                      gap: '8px',
                       marginBottom: '6px',
                       flexWrap: 'wrap',
                     }}>
                       <div style={{ color: 'white', fontWeight: 'bold', fontSize: '1rem' }}>
                         {pick.name}
                       </div>
+                      {isHot && (
+                        <div style={{
+                          background: '#10b981',
+                          color: 'white',
+                          padding: '2px 8px',
+                          borderRadius: '8px',
+                          fontSize: '10px',
+                          fontWeight: 'bold',
+                        }}>
+                          TRENDING
+                        </div>
+                      )}
                       {slug && (
                         <a
                           href={`https://sorare.com/football/cards/${slug}`}

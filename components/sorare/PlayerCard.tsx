@@ -158,14 +158,14 @@ export function PlayerCard({
             )}
             {valueScore >= 7 && (
               <div style={{
-                background: '#ef4444',
+                background: '#10b981',
                 color: 'white',
                 padding: '4px 12px',
                 borderRadius: '12px',
                 fontSize: '11px',
                 fontWeight: 'bold',
               }}>
-                HOT
+                TRENDING
               </div>
             )}
           </div>

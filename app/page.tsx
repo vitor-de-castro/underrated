@@ -404,7 +404,7 @@ export default function Home() {
                   cursor: loadingMore ? 'not-allowed' : 'pointer',
                 }}
               >
-                {loadingMore ? 'Loading...' : '+ Load More Cards'}
+                {loadingMore ? 'Loading...' : 'Load More Cards'}
               </button>
             )}
             <span style={{ color: '#4b5563' }}>•</span>

@@ -7,7 +7,6 @@ export function HowItWorks() {
 
   return (
     <>
-      {/* ? button */}
       <button
         onClick={() => setOpen(true)}
         style={{
@@ -39,7 +38,6 @@ export function HowItWorks() {
         ?
       </button>
 
-      {/* Modal overlay */}
       {open && (
         <div
           onClick={() => setOpen(false)}
@@ -60,43 +58,53 @@ export function HowItWorks() {
               background: '#1a1a1a',
               border: '1px solid #374151',
               borderRadius: '16px',
-              padding: '32px',
+              padding: '24px',
               maxWidth: '540px',
               width: '100%',
               position: 'relative',
+              maxHeight: '85vh',
+              overflowY: 'auto',
             }}
           >
-            {/* Close button */}
-            <button
-              onClick={() => setOpen(false)}
-              style={{
-                position: 'absolute',
-                top: '16px',
-                right: '16px',
-                background: 'transparent',
-                border: 'none',
-                color: '#9ca3af',
-                fontSize: '20px',
-                cursor: 'pointer',
-                lineHeight: 1,
-              }}
-            >
-              ✕
-            </button>
+            {/* Header with centered title and absolute close button */}
+            <div style={{ position: 'relative', marginBottom: '8px', textAlign: 'center' }}>
+              <h2 style={{
+                color: 'white',
+                fontSize: '1.25rem',
+                fontWeight: 'bold',
+                margin: 0,
+              }}>
+                How Underrated works
+              </h2>
+              <button
+                onClick={() => setOpen(false)}
+                style={{
+                  position: 'absolute',
+                  top: '50%',
+                  right: 0,
+                  transform: 'translateY(-50%)',
+                  background: 'rgba(255,255,255,0.1)',
+                  border: '1px solid #374151',
+                  borderRadius: '50%',
+                  color: 'white',
+                  fontSize: '16px',
+                  cursor: 'pointer',
+                  width: '32px',
+                  height: '32px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                }}
+              >
+                ✕
+              </button>
+            </div>
 
-            <h2 style={{
-              color: 'white',
-              fontSize: '1.5rem',
-              fontWeight: 'bold',
-              marginBottom: '8px',
-            }}>
-              How Underrated works
-            </h2>
-            <p style={{ color: '#9ca3af', fontSize: '0.875rem', marginBottom: '24px' }}>
+            <p style={{ color: '#9ca3af', fontSize: '0.875rem', marginBottom: '20px', textAlign: 'center' }}>
               Underrated helps you find undervalued football cards on Sorare before others do.
             </p>
 
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
               {[
                 {
                   title: 'Live Auction Data',
@@ -120,7 +128,7 @@ export function HowItWorks() {
                 },
               ].map((item) => (
                 <div key={item.title} style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                  <div style={{ color: 'white', fontWeight: '600', marginBottom: '4px' }}>
+                  <div style={{ color: 'white', fontWeight: '600' }}>
                     {item.title}
                   </div>
                   <div style={{ color: '#9ca3af', fontSize: '0.875rem', lineHeight: '1.6' }}>
@@ -131,8 +139,8 @@ export function HowItWorks() {
             </div>
 
             <div style={{
-              marginTop: '24px',
-              paddingTop: '20px',
+              marginTop: '20px',
+              paddingTop: '16px',
               borderTop: '1px solid #374151',
               color: '#6b7280',
               fontSize: '0.8rem',

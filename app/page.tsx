@@ -6,6 +6,7 @@ import { Filters } from '@/components/Filters';
 import { AIAnalyst } from '@/components/AIAnalyst';
 import { MarketStats } from '@/components/MarketStats';
 import { BackToTop } from '@/components/BackToTop';
+import { HowItWorks } from '@/components/HowItWorks';
 
 const LEAGUE_CLUBS: Record<string, string[]> = {
   premier_league: [
@@ -440,6 +441,7 @@ export default function Home() {
                   >
                     {refreshing ? '↻ Refreshing...' : '↻ Refresh'}
                   </button>
+                  <HowItWorks />
                 </div>
               </>
             )}

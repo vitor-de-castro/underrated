@@ -8,7 +8,7 @@
 
 ## What it does
 
-Underrated connects to the Sorare live auction market in real time and helps users identify which football cards are undervalued based on price context, rarity, player age, and for Premier League players, live FPL performance data. Instead of manually browsing Sorare, users get an instant overview of the market with filters, sorting, AI-powered analysis, and price trend tracking.
+Underrated connects to the Sorare live auction market in real time and helps users identify which football cards are undervalued based on price context, rarity, player age, and for Premier League players, live FPL performance data. Instead of manually browsing Sorare, users get an instant overview of the market with filters, sorting, AI-powered analysis, price trend tracking, and multi-currency support.
 
 ---
 
@@ -24,10 +24,11 @@ Underrated connects to the Sorare live auction market in real time and helps use
 - Live countdown on every card showing time remaining
 - Urgent red styling for auctions ending within 1 hour
 
-### 💰 Price Context
+### 💰 Price Context & Multi-Currency
 - Calculates the average price per rarity from all loaded cards
 - Shows each card as X% above or below average for its rarity
-- Value score factors in price vs average — cheaper than average scores higher
+- Currency toggle — switch between ETH, USD and EUR instantly
+- Live ETH/USD/EUR rates fetched from CoinGecko (cached 10 minutes)
 
 ### 📈 Price Trend Tracking
 - Stores hourly price snapshots in Upstash Redis
@@ -36,15 +37,15 @@ Underrated connects to the Sorare live auction market in real time and helps use
 
 ### 📊 Market Stats Bar
 - Cards loaded, average bid price, cheapest card, ending soon count
-- Average value score across all cards
-- Most common rarity in current auctions
-- Horizontally scrollable on mobile
+- Average value score, most common rarity
+- Price trending up/down counts
+- Grid layout on desktop, horizontal scroll on mobile
 
 ### 🤖 AI Market Analyst
 - Powered by OpenAI GPT-4o-mini
 - Analyses all live auctions with full price context and auction urgency
 - Identifies top 5 undervalued picks with detailed reasoning
-- Direct "View on Sorare" link for each pick
+- TRENDING badge and direct "View on Sorare" link for each pick
 
 ### 🏴󠁧󠁢󠁥󠁮󠁧󠁿 FPL Integration (Premier League players)
 - Form, xG, xA, goals, assists, minutes — collapsible per card
@@ -59,18 +60,16 @@ Underrated connects to the Sorare live auction market in real time and helps use
 
 ### 🎯 Filters
 - Filter by league (Premier League, La Liga, Bundesliga, Serie A, Ligue 1, Other European, MLS, All European)
-- Filter by position (Forward, Midfielder, Defender, Goalkeeper)
-- Filter by rarity (Limited, Rare, Super Rare, Unique)
-- Filter by max price (ETH)
-- Filter by minimum value score
+- Filter by position, rarity, max price, minimum value score
 - Collapsible filter panel — clean on mobile
 - Clear all filters button
 
 ### 🔃 Sort Options
-- Sort by value score (default)
-- Sort by ending soonest
-- Sort by price low to high
-- Sort by price high to low
+- Sort by value score (default), ending soonest, price low/high
+
+### ❓ How It Works Modal
+- Discrete `?` button in the header
+- Explains value score, price trends, FPL stats and AI analyst to new users
 
 ---
 
@@ -78,8 +77,7 @@ Underrated connects to the Sorare live auction market in real time and helps use
 
 - **Framework:** Next.js 16 + TypeScript
 - **UI:** React
-- **API:** Sorare GraphQL API (authenticated JWT)
-- **AI:** OpenAI API (GPT-4o-mini)
+- **APIs:** Sorare GraphQL (authenticated JWT), OpenAI (GPT-4o-mini), FPL, CoinGecko
 - **Database:** Upstash Redis (price trend snapshots)
 - **Deployment:** Vercel
 - **Domain:** underrated.live
@@ -90,22 +88,24 @@ Underrated connects to the Sorare live auction market in real time and helps use
 
 ```
 app/
-  page.tsx                          — Main page with filters, sorting, load more
+  page.tsx                          — Main page with filters, sorting, currency toggle
   api/
     sorare/
-      players/route.ts              — Fetches live auctions, calculates value scores, FPL matching
+      players/route.ts              — Fetches live auctions, calculates value scores, FPL matching, ETH rates
     ai-analyst/route.ts             — OpenAI market analysis endpoint
 components/
   sorare/
-    PlayerCard.tsx                  — Individual card with countdown, price context, FPL stats
-  AIAnalyst.tsx                     — AI analyst UI with picks and Sorare links
+    PlayerCard.tsx                  — Card with countdown, price context, FPL stats, currency display
+  AIAnalyst.tsx                     — AI analyst UI with picks, HOT badge and Sorare links
   Filters.tsx                       — Collapsible filter panel
   MarketStats.tsx                   — Market stats bar
   CountdownTimer.tsx                — Live countdown timer
   BackToTop.tsx                     — Fixed back to top button
+  HowItWorks.tsx                    — How it works modal
 lib/
   fpl-service.ts                    — FPL data fetching and caching (24h)
   price-trend-service.ts            — Upstash Redis price snapshot storage and trend calculation
+  eth-price-service.ts              — CoinGecko ETH/USD/EUR rates (cached 10 minutes)
 ```
 
 ---

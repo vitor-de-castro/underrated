@@ -32,6 +32,8 @@ interface PlayerCardProps {
   fplData?: FPLData | null;
   priceTrend?: 'up' | 'down' | 'stable' | null;
   priceChangePercent?: number | null;
+  currency?: 'eth' | 'usd' | 'eur';
+  ethRates?: { usd: number; eur: number };
 }
 
 function getStatusColor(status: string): string {
@@ -72,6 +74,8 @@ export function PlayerCard({
   fplData,
   priceTrend,
   priceChangePercent,
+  currency = 'eth',
+  ethRates = { usd: 0, eur: 0 },
 }: PlayerCardProps) {
   const [showFPL, setShowFPL] = useState(false);
 
@@ -93,6 +97,18 @@ export function PlayerCard({
     }
   };
 
+  const formatPrice = (ethPrice: number) => {
+    if (currency === 'usd' && ethRates.usd > 0) {
+      const usd = ethPrice * ethRates.usd;
+      return { symbol: '$', value: usd >= 10 ? usd.toFixed(2) : usd.toFixed(2) };
+    }
+    if (currency === 'eur' && ethRates.eur > 0) {
+      const eur = ethPrice * ethRates.eur;
+      return { symbol: '€', value: eur >= 10 ? eur.toFixed(2) : eur.toFixed(2) };
+    }
+    return { symbol: String.fromCharCode(926), value: ethPrice.toFixed(4) };
+  };
+
   const getPriceContext = () => {
     if (!averagePrice || averagePrice === 0 || price === 0) return null;
     const diff = ((price - averagePrice) / averagePrice) * 100;
@@ -112,6 +128,8 @@ export function PlayerCard({
 
   const priceContext = getPriceContext();
   const trendDisplay = getTrendDisplay();
+  const formattedPrice = formatPrice(price);
+  const formattedAvg = averagePrice ? formatPrice(averagePrice) : null;
 
   return (
     <div style={{ maxWidth: '380px', margin: '0 auto', width: '100%' }}>
@@ -246,12 +264,12 @@ export function PlayerCard({
             )}
           </div>
           <div style={{ color: '#10b981', fontSize: '28px', fontWeight: '900' }}>
-            {String.fromCharCode(926)}{price.toFixed(4)}
+            {formattedPrice.symbol}{formattedPrice.value}
           </div>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '4px' }}>
-            {averagePrice && averagePrice > 0 ? (
+            {formattedAvg && averagePrice && averagePrice > 0 ? (
               <div style={{ color: '#6b7280', fontSize: '11px' }}>
-                Avg for {rarity.replace('_', ' ')}: {String.fromCharCode(926)}{averagePrice.toFixed(4)}
+                Avg for {rarity.replace('_', ' ')}: {formattedAvg.symbol}{formattedAvg.value}
               </div>
             ) : <div />}
             {trendDisplay && (

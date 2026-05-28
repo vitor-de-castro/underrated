@@ -1,12 +1,13 @@
 import { NextResponse } from 'next/server';
 import { getFPLData, lookupFPLPlayer } from '@/lib/fpl-service';
 import { savePriceSnapshots, getPriceTrends } from '@/lib/price-trend-service';
+import { getEthRates } from '@/lib/eth-price-service';
 
 const SORARE_GRAPHQL_URL = 'https://api.sorare.com/federation/graphql';
 const SORARE_JWT_TOKEN = process.env.SORARE_JWT_TOKEN;
 const SORARE_JWT_AUD = process.env.SORARE_JWT_AUD || 'underrated';
 
-let memoryCache: { timestamp: number; data: any; cursor: string | null } | null = null;
+let memoryCache: { timestamp: number; data: any; cursor: string | null; ethRates: { usd: number; eur: number } } | null = null;
 let isFetching = false;
 const CACHE_DURATION = 60 * 60 * 1000;
 
@@ -105,15 +106,12 @@ function calculateValueScore(
   };
   const rBonus = rarityBonus[rarity] ?? 0;
 
-  // FPL boost/penalty for PL players
   let fplBonus = 0;
   if (fplData) {
-    // Injury/availability penalty
     if (fplData.status === 'i' || fplData.status === 'u') fplBonus -= 1.0;
     else if (fplData.status === 'd') fplBonus -= 0.5;
     else if (fplData.status === 's') fplBonus -= 0.7;
 
-    // Form bonus/penalty
     const form = parseFloat(fplData.form);
     if (form >= 8) fplBonus += 0.5;
     else if (form >= 6) fplBonus += 0.3;
@@ -149,17 +147,14 @@ function computeAvgPrices(auctions: any[]): Record<string, number> {
 
 async function mapAuctions(auctions: any[], avgPrices: Record<string, number>) {
   const fplMap = await getFPLData();
-
   const validAuctions = auctions.filter((auction: any) => auction.anyCards?.[0]?.player?.displayName);
 
-  // Save price snapshots to Redis
   const snapshots = validAuctions.map((auction: any) => ({
     slug: auction.anyCards[0].slug,
     price: parseFloat(auction.currentPrice) / 1e18,
   }));
   await savePriceSnapshots(snapshots);
 
-  // Get price trends for all cards
   const slugs = snapshots.map(s => s.slug);
   const trendsMap = await getPriceTrends(slugs);
 
@@ -223,7 +218,6 @@ export async function GET(request: Request) {
 
     if (loadMore) {
       if (!cursor) return NextResponse.json({ players: [], nextCursor: null, hasMore: false });
-      console.log('Loading more cards...');
       const batch1 = await fetchAuctions(15, cursor);
       const nodes1 = batch1?.nodes ?? [];
       const cursor1 = batch1?.pageInfo?.startCursor;
@@ -232,9 +226,10 @@ export async function GET(request: Request) {
       const nextCursor = (batch2 as any)?.pageInfo?.startCursor ?? null;
       const allAuctions = [...nodes1, ...nodes2];
       const avgPrices = computeAvgPrices(allAuctions);
+      const ethRates = await getEthRates();
       const players = (await mapAuctions(allAuctions, avgPrices))
         .sort((a, b) => b.valueScore - a.valueScore);
-      return NextResponse.json({ players, nextCursor, hasMore: !!nextCursor });
+      return NextResponse.json({ players, nextCursor, hasMore: !!nextCursor, ethRates });
     }
 
     if (forceRefresh) {
@@ -249,6 +244,7 @@ export async function GET(request: Request) {
         players: cached.data,
         nextCursor: cached.cursor,
         hasMore: !!cached.cursor,
+        ethRates: cached.ethRates,
       });
     }
 
@@ -259,6 +255,7 @@ export async function GET(request: Request) {
         players: cached2.data,
         nextCursor: cached2.cursor,
         hasMore: !!cached2.cursor,
+        ethRates: cached2.ethRates,
       });
     }
 
@@ -283,14 +280,15 @@ export async function GET(request: Request) {
 
     const allAuctions = [...nodes1, ...nodes2, ...nodes3, ...nodes4];
     const avgPrices = computeAvgPrices(allAuctions);
+    const ethRates = await getEthRates();
     const players = (await mapAuctions(allAuctions, avgPrices))
       .sort((a, b) => b.valueScore - a.valueScore);
 
     console.log(`Total cards: ${players.length}`);
-    memoryCache = { timestamp: Date.now(), data: players, cursor: nextCursor };
+    memoryCache = { timestamp: Date.now(), data: players, cursor: nextCursor, ethRates };
     isFetching = false;
 
-    return NextResponse.json({ players, nextCursor, hasMore: !!nextCursor });
+    return NextResponse.json({ players, nextCursor, hasMore: !!nextCursor, ethRates });
 
   } catch (error) {
     isFetching = false;

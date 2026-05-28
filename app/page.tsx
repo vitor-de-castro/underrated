@@ -10,172 +10,79 @@ import { HowItWorks } from '@/components/HowItWorks';
 
 const LEAGUE_CLUBS: Record<string, string[]> = {
   premier_league: [
-    'arsenal fc', 'arsenal',
-    'chelsea fc', 'chelsea',
-    'liverpool fc', 'liverpool',
-    'manchester city', 'man city',
-    'manchester united', 'man united', 'man utd',
-    'tottenham hotspur', 'tottenham', 'spurs',
-    'newcastle united', 'newcastle',
-    'west ham united', 'west ham',
-    'aston villa',
-    'brighton',
-    'fulham',
-    'brentford',
-    'crystal palace',
-    'everton',
-    'leicester city', 'leicester',
-    'wolverhampton', 'wolves',
-    'nottingham forest',
-    'bournemouth', 'afc bournemouth',
-    'southampton',
-    'ipswich town', 'ipswich',
-    'burnley',
-    'luton town', 'luton',
-    'sheffield united',
+    'arsenal fc', 'arsenal', 'chelsea fc', 'chelsea', 'liverpool fc', 'liverpool',
+    'manchester city', 'man city', 'manchester united', 'man united', 'man utd',
+    'tottenham hotspur', 'tottenham', 'spurs', 'newcastle united', 'newcastle',
+    'west ham united', 'west ham', 'aston villa', 'brighton', 'fulham', 'brentford',
+    'crystal palace', 'everton', 'leicester city', 'leicester', 'wolverhampton', 'wolves',
+    'nottingham forest', 'bournemouth', 'afc bournemouth', 'southampton',
+    'ipswich town', 'ipswich', 'burnley', 'luton town', 'luton', 'sheffield united',
   ],
   la_liga: [
-    'real madrid', 'real madrid cf',
-    'fc barcelona', 'barcelona',
-    'atletico madrid', 'atlético de madrid',
-    'sevilla fc', 'sevilla',
-    'valencia cf', 'valencia',
-    'athletic bilbao', 'athletic club',
-    'real sociedad',
-    'villarreal cf', 'villarreal',
-    'real betis',
-    'getafe cf', 'getafe',
-    'ca osasuna', 'osasuna',
-    'girona fc', 'girona',
-    'rcd mallorca', 'mallorca',
-    'rc celta', 'celta vigo', 'celta de vigo',
-    'rayo vallecano',
-    'deportivo alaves', 'alaves',
-    'cd leganes', 'leganes',
-    'real valladolid', 'valladolid',
-    'las palmas', 'ud las palmas',
-    'rcd espanyol', 'espanyol',
-    'elche cf', 'elche',
+    'real madrid', 'real madrid cf', 'fc barcelona', 'barcelona',
+    'atletico madrid', 'atlético de madrid', 'sevilla fc', 'sevilla',
+    'valencia cf', 'valencia', 'athletic bilbao', 'athletic club', 'real sociedad',
+    'villarreal cf', 'villarreal', 'real betis', 'getafe cf', 'getafe',
+    'ca osasuna', 'osasuna', 'girona fc', 'girona', 'rcd mallorca', 'mallorca',
+    'rc celta', 'celta vigo', 'celta de vigo', 'rayo vallecano',
+    'deportivo alaves', 'alaves', 'cd leganes', 'leganes',
+    'real valladolid', 'valladolid', 'las palmas', 'ud las palmas',
+    'rcd espanyol', 'espanyol', 'elche cf', 'elche',
   ],
   bundesliga: [
     'fc bayern munich', 'fc bayern münchen', 'bayern munich', 'bayern münchen',
-    'borussia dortmund', 'bvb',
-    'bayer 04 leverkusen', 'bayer leverkusen',
-    'rb leipzig',
-    'eintracht frankfurt',
-    'vfl wolfsburg', 'wolfsburg',
-    'sc freiburg', 'freiburg',
-    'tsg hoffenheim', 'hoffenheim',
-    'fsv mainz', 'mainz 05', 'mainz',
-    'borussia monchengladbach', 'borussia mönchengladbach',
-    'fc augsburg', 'augsburg',
-    '1. fc union berlin', 'union berlin',
-    'sv werder bremen', 'werder bremen',
-    'vfb stuttgart', 'stuttgart',
-    '1. fc heidenheim', 'heidenheim',
-    'fc st. pauli', 'st. pauli',
-    'vfl bochum', 'bochum',
-    'spvgg greuther furth', 'greuther furth',
+    'borussia dortmund', 'bvb', 'bayer 04 leverkusen', 'bayer leverkusen',
+    'rb leipzig', 'eintracht frankfurt', 'vfl wolfsburg', 'wolfsburg',
+    'sc freiburg', 'freiburg', 'tsg hoffenheim', 'hoffenheim',
+    'fsv mainz', 'mainz 05', 'mainz', 'borussia monchengladbach', 'borussia mönchengladbach',
+    'fc augsburg', 'augsburg', '1. fc union berlin', 'union berlin',
+    'sv werder bremen', 'werder bremen', 'vfb stuttgart', 'stuttgart',
+    '1. fc heidenheim', 'heidenheim', 'fc st. pauli', 'st. pauli',
+    'vfl bochum', 'bochum', 'spvgg greuther furth', 'greuther furth',
   ],
   serie_a: [
-    'juventus fc', 'juventus',
-    'ac milan',
-    'inter milan', 'fc internazionale', 'internazionale',
-    'ssc napoli', 'napoli',
-    'as roma', 'roma',
-    'ss lazio', 'lazio',
-    'acf fiorentina', 'fiorentina',
-    'atalanta bc', 'atalanta',
-    'torino fc', 'torino',
-    'bologna fc', 'bologna',
-    'udinese calcio', 'udinese',
-    'uc sampdoria', 'sampdoria',
-    'us sassuolo', 'sassuolo',
-    'empoli fc', 'empoli',
-    'ac monza', 'monza',
-    'us lecce', 'lecce',
-    'cagliari calcio', 'cagliari',
-    'hellas verona', 'verona',
-    'como 1907', 'como',
-    'genoa cfc', 'genoa',
-    'parma calcio', 'parma',
-    'venezia fc', 'venezia',
+    'juventus fc', 'juventus', 'ac milan', 'inter milan', 'fc internazionale', 'internazionale',
+    'ssc napoli', 'napoli', 'as roma', 'roma', 'ss lazio', 'lazio',
+    'acf fiorentina', 'fiorentina', 'atalanta bc', 'atalanta', 'torino fc', 'torino',
+    'bologna fc', 'bologna', 'udinese calcio', 'udinese', 'uc sampdoria', 'sampdoria',
+    'us sassuolo', 'sassuolo', 'empoli fc', 'empoli', 'ac monza', 'monza',
+    'us lecce', 'lecce', 'cagliari calcio', 'cagliari', 'hellas verona', 'verona',
+    'como 1907', 'como', 'genoa cfc', 'genoa', 'parma calcio', 'parma', 'venezia fc', 'venezia',
   ],
   ligue_1: [
-    'paris saint-germain', 'psg',
-    'olympique de marseille', 'marseille', 'om',
-    'olympique lyonnais', 'lyon', 'ol',
-    'as monaco', 'monaco',
-    'losc lille', 'lille',
-    'ogc nice', 'nice',
-    'rc lens', 'lens',
-    'stade rennais', 'rennes',
-    'rc strasbourg', 'strasbourg',
-    'fc nantes', 'nantes',
-    'montpellier hsc', 'montpellier',
-    'stade de reims', 'reims',
-    'toulouse fc', 'toulouse',
-    'stade brestois', 'brest',
-    'le havre ac', 'le havre',
-    'aj auxerre', 'auxerre',
-    'fc lorient', 'lorient',
-    'fc metz', 'metz',
-    'clermont foot', 'clermont',
-    'as saint-etienne', 'saint-etienne',
-    'angers sco', 'angers',
+    'paris saint-germain', 'psg', 'olympique de marseille', 'marseille', 'om',
+    'olympique lyonnais', 'lyon', 'ol', 'as monaco', 'monaco', 'losc lille', 'lille',
+    'ogc nice', 'nice', 'rc lens', 'lens', 'stade rennais', 'rennes',
+    'rc strasbourg', 'strasbourg', 'fc nantes', 'nantes',
+    'montpellier hsc', 'montpellier', 'stade de reims', 'reims',
+    'toulouse fc', 'toulouse', 'stade brestois', 'brest',
+    'le havre ac', 'le havre', 'aj auxerre', 'auxerre', 'fc lorient', 'lorient',
+    'fc metz', 'metz', 'clermont foot', 'clermont',
+    'as saint-etienne', 'saint-etienne', 'angers sco', 'angers',
   ],
   other_european: [
-    'sporting cp', 'sporting clube de portugal',
-    'sl benfica', 'benfica',
-    'fc porto', 'porto',
-    'sc braga', 'braga',
-    'ajax', 'afc ajax',
-    'psv eindhoven', 'psv',
-    'feyenoord',
-    'az alkmaar', 'az',
-    'celtic fc', 'celtic',
-    'rangers fc', 'rangers',
-    'club brugge', 'club brugge kv',
-    'rsc anderlecht', 'anderlecht',
-    'krc genk', 'genk',
-    'standard liege', 'standard de liège', 'standard',
-    'kaa gent', 'gent',
-    'royal union saint-gilloise', 'union saint-gilloise',
+    'sporting cp', 'sporting clube de portugal', 'sl benfica', 'benfica',
+    'fc porto', 'porto', 'sc braga', 'braga', 'ajax', 'afc ajax',
+    'psv eindhoven', 'psv', 'feyenoord', 'az alkmaar', 'az',
+    'celtic fc', 'celtic', 'rangers fc', 'rangers',
+    'club brugge', 'club brugge kv', 'rsc anderlecht', 'anderlecht',
+    'krc genk', 'genk', 'standard liege', 'standard de liège', 'standard',
+    'kaa gent', 'gent', 'royal union saint-gilloise', 'union saint-gilloise',
     'galatasaray', 'fenerbahce', 'fenerbahçe', 'besiktas', 'beşiktaş',
-    'fc red bull salzburg', 'rb salzburg', 'salzburg',
-    'shakhtar donetsk', 'shakhtar',
+    'fc red bull salzburg', 'rb salzburg', 'salzburg', 'shakhtar donetsk', 'shakhtar',
   ],
   mls: [
-    'inter miami cf', 'inter miami',
-    'la galaxy',
-    'los angeles fc', 'lafc',
-    'seattle sounders fc', 'seattle sounders',
-    'portland timbers',
-    'new york city fc', 'nycfc',
-    'new york red bulls', 'ny red bulls',
-    'atlanta united fc', 'atlanta united',
-    'orlando city sc', 'orlando city',
-    'nashville sc',
-    'austin fc',
-    'charlotte fc',
-    'chicago fire fc', 'chicago fire',
-    'colorado rapids',
-    'columbus crew',
-    'fc dallas',
-    'houston dynamo fc', 'houston dynamo',
-    'minnesota united fc', 'minnesota united',
-    'new england revolution',
-    'philadelphia union',
-    'real salt lake',
-    'san jose earthquakes',
-    'sporting kansas city',
-    'toronto fc',
-    'vancouver whitecaps fc', 'vancouver whitecaps',
-    'dc united',
-    'cf montreal', 'montreal',
-    'fc cincinnati',
-    'st. louis city sc', 'st. louis city',
-    'san diego fc',
+    'inter miami cf', 'inter miami', 'la galaxy', 'los angeles fc', 'lafc',
+    'seattle sounders fc', 'seattle sounders', 'portland timbers',
+    'new york city fc', 'nycfc', 'new york red bulls', 'ny red bulls',
+    'atlanta united fc', 'atlanta united', 'orlando city sc', 'orlando city',
+    'nashville sc', 'austin fc', 'charlotte fc', 'chicago fire fc', 'chicago fire',
+    'colorado rapids', 'columbus crew', 'fc dallas', 'houston dynamo fc', 'houston dynamo',
+    'minnesota united fc', 'minnesota united', 'new england revolution',
+    'philadelphia union', 'real salt lake', 'san jose earthquakes',
+    'sporting kansas city', 'toronto fc', 'vancouver whitecaps fc', 'vancouver whitecaps',
+    'dc united', 'cf montreal', 'montreal', 'fc cincinnati',
+    'st. louis city sc', 'st. louis city', 'san diego fc',
   ],
 };
 
@@ -197,6 +104,8 @@ function getLeagueForClub(clubName: string): string {
   return 'other';
 }
 
+type Currency = 'eth' | 'usd' | 'eur';
+
 export default function Home() {
   const [players, setPlayers] = useState<any[]>([]);
   const [filteredPlayers, setFilteredPlayers] = useState<any[]>([]);
@@ -208,6 +117,8 @@ export default function Home() {
   const [hasMore, setHasMore] = useState(false);
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
   const [minutesAgo, setMinutesAgo] = useState(0);
+  const [currency, setCurrency] = useState<Currency>('eth');
+  const [ethRates, setEthRates] = useState<{ usd: number; eur: number }>({ usd: 0, eur: 0 });
 
   const [selectedPosition, setSelectedPosition] = useState('all');
   const [selectedRarity, setSelectedRarity] = useState('all');
@@ -251,6 +162,7 @@ export default function Home() {
       setHasMore(data.hasMore);
       setLastUpdated(new Date());
       setMinutesAgo(0);
+      if (data.ethRates) setEthRates(data.ethRates);
     } catch (err) {
       setError('Failed to load players. Check console for details.');
       console.error(err);
@@ -296,12 +208,8 @@ export default function Home() {
       });
     }
 
-    if (selectedPosition !== 'all') {
-      filtered = filtered.filter(p => p.position === selectedPosition);
-    }
-    if (selectedRarity !== 'all') {
-      filtered = filtered.filter(p => p.rarity === selectedRarity);
-    }
+    if (selectedPosition !== 'all') filtered = filtered.filter(p => p.position === selectedPosition);
+    if (selectedRarity !== 'all') filtered = filtered.filter(p => p.rarity === selectedRarity);
     filtered = filtered.filter(p => p.price <= maxPrice);
     filtered = filtered.filter(p => p.valueScore >= minValueScore);
 
@@ -324,18 +232,10 @@ export default function Home() {
 
   if (loading) {
     return (
-      <div style={{
-        minHeight: '100vh',
-        background: '#000000',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-      }}>
+      <div style={{ minHeight: '100vh', background: '#000000', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
         <div style={{ textAlign: 'center' }}>
           <div style={{ fontSize: '4rem', marginBottom: '16px' }}>⚽</div>
-          <div style={{ fontSize: '1.5rem', fontWeight: 'bold', color: 'white', marginBottom: '8px' }}>
-            Loading players...
-          </div>
+          <div style={{ fontSize: '1.5rem', fontWeight: 'bold', color: 'white', marginBottom: '8px' }}>Loading players...</div>
           <div style={{ color: '#6b7280' }}>Fetching undervalued gems</div>
         </div>
       </div>
@@ -344,23 +244,28 @@ export default function Home() {
 
   if (error) {
     return (
-      <div style={{
-        minHeight: '100vh',
-        background: '#000000',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-      }}>
+      <div style={{ minHeight: '100vh', background: '#000000', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
         <div style={{ textAlign: 'center' }}>
           <div style={{ fontSize: '4rem', marginBottom: '16px' }}>⚠️</div>
-          <div style={{ fontSize: '1.25rem', fontWeight: '600', color: '#ef4444', marginBottom: '8px' }}>
-            Error
-          </div>
+          <div style={{ fontSize: '1.25rem', fontWeight: '600', color: '#ef4444', marginBottom: '8px' }}>Error</div>
           <div style={{ color: '#9ca3af' }}>{error}</div>
         </div>
       </div>
     );
   }
+
+  const currencyButtonStyle = (c: Currency) => ({
+    padding: '3px 12px',
+    borderRadius: '9999px',
+    fontSize: '0.8rem',
+    fontWeight: '600',
+    cursor: 'pointer',
+    border: '1px solid',
+    borderColor: currency === c ? '#a5b4fc' : '#374151',
+    background: currency === c ? 'rgba(99, 102, 241, 0.2)' : 'transparent',
+    color: currency === c ? '#a5b4fc' : '#6b7280',
+    transition: 'all 0.2s',
+  });
 
   return (
     <main style={{ minHeight: '100vh', background: '#000000', padding: '48px 16px' }}>
@@ -383,13 +288,7 @@ export default function Home() {
           <p style={{ fontSize: 'clamp(0.9rem, 3vw, 1.25rem)', color: '#9ca3af', marginBottom: '12px' }}>
             Discover undervalued football players on Sorare
           </p>
-          <div style={{
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            gap: '12px',
-            flexWrap: 'wrap',
-          }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '12px', flexWrap: 'wrap' }}>
             {hasMore && (
               <button
                 onClick={loadMore}
@@ -409,9 +308,16 @@ export default function Home() {
               </button>
             )}
             <span style={{ color: '#4b5563' }}>•</span>
-            <span style={{ color: '#6b7280', fontSize: '0.875rem' }}>
-              Real-time market data
-            </span>
+            <span style={{ color: '#6b7280', fontSize: '0.875rem' }}>Real-time market data</span>
+            <span style={{ color: '#4b5563' }}>•</span>
+            {/* Currency toggle */}
+            <div style={{ display: 'flex', gap: '4px', alignItems: 'center' }}>
+              {(['eth', 'usd', 'eur'] as Currency[]).map(c => (
+                <button key={c} onClick={() => setCurrency(c)} style={currencyButtonStyle(c)}>
+                  {c.toUpperCase()}
+                </button>
+              ))}
+            </div>
             {lastUpdated && (
               <>
                 <span style={{ color: '#4b5563' }}>•</span>
@@ -432,12 +338,8 @@ export default function Home() {
                       cursor: refreshing ? 'not-allowed' : 'pointer',
                       transition: 'all 0.2s',
                     }}
-                    onMouseEnter={(e) => {
-                      if (!refreshing) e.currentTarget.style.borderColor = '#6b7280';
-                    }}
-                    onMouseLeave={(e) => {
-                      e.currentTarget.style.borderColor = '#374151';
-                    }}
+                    onMouseEnter={(e) => { if (!refreshing) e.currentTarget.style.borderColor = '#6b7280'; }}
+                    onMouseLeave={(e) => { e.currentTarget.style.borderColor = '#374151'; }}
                   >
                     {refreshing ? '↻ Refreshing...' : '↻ Refresh'}
                   </button>
@@ -449,9 +351,7 @@ export default function Home() {
         </div>
 
         <MarketStats players={players} />
-
         <AIAnalyst players={players} />
-
         <Filters
           onPositionChange={setSelectedPosition}
           onPriceChange={setMaxPrice}
@@ -546,6 +446,8 @@ export default function Home() {
                   fplData={player.fplData ?? null}
                   priceTrend={player.priceTrend ?? null}
                   priceChangePercent={player.priceChangePercent ?? null}
+                  currency={currency}
+                  ethRates={ethRates}
                 />
               ))}
             </div>
@@ -566,12 +468,8 @@ export default function Home() {
                     fontSize: '1rem',
                     transition: 'all 0.2s',
                   }}
-                  onMouseEnter={(e) => {
-                    if (!loadingMore) e.currentTarget.style.borderColor = '#6b7280';
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.borderColor = '#374151';
-                  }}
+                  onMouseEnter={(e) => { if (!loadingMore) e.currentTarget.style.borderColor = '#6b7280'; }}
+                  onMouseLeave={(e) => { e.currentTarget.style.borderColor = '#374151'; }}
                 >
                   {loadingMore ? 'Loading...' : 'Load More Cards'}
                 </button>
@@ -582,9 +480,7 @@ export default function Home() {
           <div style={{ textAlign: 'center', color: '#6b7280', padding: '80px 0' }}>
             <div style={{ fontSize: '4rem', marginBottom: '16px' }}>🔍</div>
             <p style={{ fontSize: '1.25rem', color: '#9ca3af' }}>No players match your filters</p>
-            <p style={{ fontSize: '0.875rem', color: '#6b7280', marginTop: '8px' }}>
-              Try adjusting the filters above
-            </p>
+            <p style={{ fontSize: '0.875rem', color: '#6b7280', marginTop: '8px' }}>Try adjusting the filters above</p>
           </div>
         )}
       </div>

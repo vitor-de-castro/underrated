@@ -25,7 +25,6 @@ export function Filters({ onPositionChange, onPriceChange, onValueScoreChange, o
         borderRadius: '16px',
         overflow: 'hidden',
       }}>
-        {/* Header — always visible, clickable */}
         <button
           onClick={() => setIsOpen(!isOpen)}
           style={{
@@ -62,7 +61,6 @@ export function Filters({ onPositionChange, onPriceChange, onValueScoreChange, o
           </span>
         </button>
 
-        {/* Filters — collapsible */}
         {isOpen && (
           <div style={{ padding: '0 24px 24px 24px' }}>
             <div
@@ -108,6 +106,7 @@ export function Filters({ onPositionChange, onPriceChange, onValueScoreChange, o
                   <option value="ligue_1">Ligue 1</option>
                   <option value="other_european">Other European</option>
                   <option value="mls">MLS</option>
+                  <option value="other">Other Leagues</option>
                 </select>
               </div>
 

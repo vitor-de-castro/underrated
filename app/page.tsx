@@ -204,6 +204,7 @@ export default function Home() {
       filtered = filtered.filter(p => {
         const league = getLeagueForClub(p.club?.name ?? '');
         if (selectedLeague === 'european') return EUROPEAN_LEAGUES.includes(league);
+        if (selectedLeague === 'other') return !EUROPEAN_LEAGUES.includes(league) && league !== 'mls';
         return league === selectedLeague;
       });
     }

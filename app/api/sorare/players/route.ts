@@ -42,6 +42,10 @@ const makeQuery = (last: number, before?: string) => `
                 displayName
                 age
                 anyPositions
+                country {
+                  code
+                  name
+                }
                 activeClub {
                   name
                 }
@@ -111,7 +115,6 @@ function calculateValueScore(
     if (fplData.status === 'i' || fplData.status === 'u') fplBonus -= 1.0;
     else if (fplData.status === 'd') fplBonus -= 0.5;
     else if (fplData.status === 's') fplBonus -= 0.7;
-
     const form = parseFloat(fplData.form);
     if (form >= 8) fplBonus += 0.5;
     else if (form >= 6) fplBonus += 0.3;
@@ -191,6 +194,7 @@ async function mapAuctions(auctions: any[], avgPrices: Record<string, number>) {
       age: player.age,
       avatarUrl: card.pictureUrl,
       club: { name: clubName || 'Unknown Club' },
+      nationality: player.country?.name ?? null,
       rarity: card.rarityTyped,
       price: priceInEth,
       endTime: auction.endDate ?? null,

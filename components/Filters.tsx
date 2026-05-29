@@ -8,9 +8,19 @@ interface FiltersProps {
   onValueScoreChange: (minScore: number) => void;
   onRarityChange: (rarity: string) => void;
   onLeagueChange: (league: string) => void;
+  onNationalityChange: (nationality: string) => void;
+  topNationalities: string[];
 }
 
-export function Filters({ onPositionChange, onPriceChange, onValueScoreChange, onRarityChange, onLeagueChange }: FiltersProps) {
+export function Filters({
+  onPositionChange,
+  onPriceChange,
+  onValueScoreChange,
+  onRarityChange,
+  onLeagueChange,
+  onNationalityChange,
+  topNationalities,
+}: FiltersProps) {
   const [isOpen, setIsOpen] = useState(false);
 
   return (
@@ -67,7 +77,7 @@ export function Filters({ onPositionChange, onPriceChange, onValueScoreChange, o
               className="filters-grid"
               style={{
                 display: 'grid',
-                gridTemplateColumns: 'repeat(auto-fit, minmax(min(200px, 100%), 1fr))',
+                gridTemplateColumns: 'repeat(auto-fit, minmax(min(150px, 100%), 1fr))',
                 gap: '16px',
               }}
             >
@@ -107,6 +117,39 @@ export function Filters({ onPositionChange, onPriceChange, onValueScoreChange, o
                   <option value="other_european">Other European</option>
                   <option value="mls">MLS</option>
                   <option value="other">Other Leagues</option>
+                </select>
+              </div>
+
+              {/* Nationality filter */}
+              <div>
+                <label style={{
+                  display: 'block',
+                  fontSize: '0.875rem',
+                  fontWeight: '600',
+                  color: '#9ca3af',
+                  marginBottom: '8px',
+                  textTransform: 'uppercase',
+                  letterSpacing: '0.05em',
+                }}>
+                  Nationality
+                </label>
+                <select
+                  onChange={(e) => onNationalityChange(e.target.value)}
+                  style={{
+                    width: '100%',
+                    padding: '12px',
+                    background: '#000000',
+                    border: '1px solid #374151',
+                    borderRadius: '8px',
+                    color: 'white',
+                    fontSize: '0.875rem',
+                    cursor: 'pointer',
+                  }}
+                >
+                  <option value="all">All Nationalities</option>
+                  {topNationalities.map(nat => (
+                    <option key={nat} value={nat}>{nat}</option>
+                  ))}
                 </select>
               </div>
 

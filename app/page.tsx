@@ -123,6 +123,7 @@ export default function Home() {
   const [selectedPosition, setSelectedPosition] = useState('all');
   const [selectedRarity, setSelectedRarity] = useState('all');
   const [selectedLeague, setSelectedLeague] = useState('all');
+  const [selectedNationality, setSelectedNationality] = useState('all');
   const [maxPrice, setMaxPrice] = useState(9999);
   const [minValueScore, setMinValueScore] = useState(0);
   const [sortBy, setSortBy] = useState('valueScore');
@@ -139,6 +140,19 @@ export default function Home() {
       averages[rarity] = prices.reduce((a, b) => a + b, 0) / prices.length;
     });
     return averages;
+  }, [players]);
+
+  // Top 10 nationalities from loaded players
+  const topNationalities = useMemo(() => {
+    const counts: Record<string, number> = {};
+    players.forEach(p => {
+      if (!p.nationality) return;
+      counts[p.nationality] = (counts[p.nationality] || 0) + 1;
+    });
+    return Object.entries(counts)
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, 10)
+      .map(([nat]) => nat);
   }, [players]);
 
   useEffect(() => {
@@ -209,6 +223,10 @@ export default function Home() {
       });
     }
 
+    if (selectedNationality !== 'all') {
+      filtered = filtered.filter(p => p.nationality === selectedNationality);
+    }
+
     if (selectedPosition !== 'all') filtered = filtered.filter(p => p.position === selectedPosition);
     if (selectedRarity !== 'all') filtered = filtered.filter(p => p.rarity === selectedRarity);
     filtered = filtered.filter(p => p.price <= maxPrice);
@@ -229,7 +247,7 @@ export default function Home() {
     }
 
     setFilteredPlayers(filtered);
-  }, [selectedPosition, selectedRarity, selectedLeague, maxPrice, minValueScore, sortBy, players]);
+  }, [selectedPosition, selectedRarity, selectedLeague, selectedNationality, maxPrice, minValueScore, sortBy, players]);
 
   if (loading) {
     return (
@@ -267,6 +285,9 @@ export default function Home() {
     color: currency === c ? '#a5b4fc' : '#6b7280',
     transition: 'all 0.2s',
   });
+
+  const hasActiveFilters = selectedPosition !== 'all' || selectedRarity !== 'all' ||
+    selectedLeague !== 'all' || selectedNationality !== 'all' || maxPrice !== 9999 || minValueScore !== 0;
 
   return (
     <main style={{ minHeight: '100vh', background: '#000000', padding: '48px 16px' }}>
@@ -311,7 +332,6 @@ export default function Home() {
             <span style={{ color: '#4b5563' }}>•</span>
             <span style={{ color: '#6b7280', fontSize: '0.875rem' }}>Real-time market data</span>
             <span style={{ color: '#4b5563' }}>•</span>
-            {/* Currency toggle */}
             <div style={{ display: 'flex', gap: '4px', alignItems: 'center' }}>
               {(['eth', 'usd', 'eur'] as Currency[]).map(c => (
                 <button key={c} onClick={() => setCurrency(c)} style={currencyButtonStyle(c)}>
@@ -359,6 +379,8 @@ export default function Home() {
           onValueScoreChange={setMinValueScore}
           onRarityChange={setSelectedRarity}
           onLeagueChange={setSelectedLeague}
+          onNationalityChange={setSelectedNationality}
+          topNationalities={topNationalities}
         />
 
         <div style={{
@@ -372,12 +394,13 @@ export default function Home() {
         }}>
           <div style={{ color: '#9ca3af', fontSize: 'clamp(0.8rem, 2vw, 1rem)' }}>
             Showing <span style={{ color: 'white', fontWeight: '600' }}>{filteredPlayers.length}</span> player{filteredPlayers.length !== 1 ? 's' : ''}
-            {(selectedPosition !== 'all' || selectedRarity !== 'all' || selectedLeague !== 'all' || maxPrice !== 9999 || minValueScore !== 0) && (
+            {hasActiveFilters && (
               <button
                 onClick={() => {
                   setSelectedPosition('all');
                   setSelectedRarity('all');
                   setSelectedLeague('all');
+                  setSelectedNationality('all');
                   setMaxPrice(9999);
                   setMinValueScore(0);
                 }}

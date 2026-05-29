@@ -59,7 +59,8 @@ Underrated connects to the Sorare live auction market in real time and helps use
   - Form below 2 → -0.2
 
 ### 🎯 Filters
-- Filter by league (Premier League, La Liga, Bundesliga, Serie A, Ligue 1, Other European, MLS, All European)
+- Filter by league (Premier League, La Liga, Bundesliga, Serie A, Ligue 1, Other European, MLS, Other Leagues, All European)
+- Filter by nationality — dynamic top 10 most common nationalities from loaded cards
 - Filter by position, rarity, max price, minimum value score
 - Collapsible filter panel — clean on mobile
 - Clear all filters button
